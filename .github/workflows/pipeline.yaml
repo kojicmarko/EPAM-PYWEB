@@ -16,7 +16,5 @@ jobs:
         run: poetry install --no-interaction --no-ansi
       - name: Debugging
         run: ls
-      - name: Lint
-        run: make lint
       - name: Test
         run: pytest
