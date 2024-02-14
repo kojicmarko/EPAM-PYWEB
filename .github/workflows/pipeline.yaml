@@ -14,7 +14,9 @@ jobs:
           cache: 'poetry'
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi
-      - name: Debugging
-        run: ls
+      - name: Start venv
+        run: poetry shell
+      - name: Lint
+        run: make lint
       - name: Test
-        run: pytest
+        run: make test

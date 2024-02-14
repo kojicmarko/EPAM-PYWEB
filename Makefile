@@ -21,3 +21,5 @@ clean-docker:
 	docker stop epam-pyweb
 	docker rm epam-pyweb
 	docker rmi pyweb-image
+test:
+	pytest
