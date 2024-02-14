@@ -6,14 +6,14 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
       - name: Install poetry
-        run: pipx install poetry
+        run: pipx install poetry==1.7.1
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: '3.10.6'
           cache: 'poetry'
       - name: Install dependencies
-        run: poetry install --no-interaction --no-ans
+        run: poetry install --no-interaction --no-ansi
       - name: Lint
         run: make lint
       - name: Test
