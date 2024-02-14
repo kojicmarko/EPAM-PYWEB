@@ -3,8 +3,8 @@ install:
 run:
 	uvicorn src.main:app
 lint:
-	ruff format
-	ruff check --fix
+	ruff format src tests
+	ruff check --fix src tests
 	mypy src tests
 build-docker:
 	docker build -t pyweb-image .
