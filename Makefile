@@ -3,9 +3,9 @@ install:
 run:
 	uvicorn src.main:app
 lint:
-	ruff format src tests
-	ruff check --fix src tests
-	mypy src tests
+	poetry run ruff format src tests
+	poetry run ruff check --fix src tests
+	poetry run mypy src tests
 build-docker:
 	docker build -t pyweb-image .
 run-docker:
@@ -22,4 +22,4 @@ clean-docker:
 	docker rm epam-pyweb
 	docker rmi pyweb-image
 test:
-	pytest
+	poetry run pytest
