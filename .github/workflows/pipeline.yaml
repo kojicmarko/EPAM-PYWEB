@@ -29,6 +29,8 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi
       - name: Run migrations
+        env:
+          DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:3254/test
         run: poetry run alembic upgrade head
       - name: Lint
         run: make lint-ci
