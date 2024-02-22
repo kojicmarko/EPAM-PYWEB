@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: pyweb_test
+    ports:
+      - "8080:80"
+    depends_on:
+      - test_db
+    environment:
+      - DATABASE_URL=postgresql+psycopg://postgres:postgres@test_db:5432/test
+  test_db:
+    image: postgres:15
+    container_name: test_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=test
+    ports:
+      - "3254:5432"

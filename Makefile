@@ -1,9 +1,11 @@
+# TODO: Commands could be cleaned up
+
 install:
 	poetry install
 build:
-	docker build -t pyweb-image .
+	docker-compose build -t pyweb-image .
 run:
-	docker-compose up -d
+	poetry run uvicorn src.main:app --port 80
 stop:
 	docker-compose down --volumes
 lint:
@@ -16,12 +18,13 @@ lint-ci:
 	poetry run mypy src tests
 test:
 	poetry run pytest --cov=src tests/
-run-docker:
-	docker run -d --name epam-pyweb -p 80:80 pyweb-image
-stop-docker:
-	docker stop epam-pyweb
-	docker rm epam-pyweb
-clean-docker:
-	docker stop epam-pyweb
-	docker rm epam-pyweb
-	docker rmi pyweb-image
+docker-run:
+	docker-compose up -d
+docker-stop:
+	docker-compose down
+docker-stop-v:
+	docker-compose down --volumes
+docker-test-up:
+	docker-compose -f docker-compose.test.yaml up -d --build
+docker-test-down:
+	docker-compose -f docker-compose.test.yaml down --volumes

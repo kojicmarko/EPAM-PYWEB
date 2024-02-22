@@ -1,68 +1,55 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
-from src.projects.schemas import Project
-
-# - - - - - - - - - - IN-MEMORY DB - - - - - - - - - - #
-
-# Projects
-first = Project(id=1, name="first", description="The First project")
-second = Project(id=2, name="second", description="The Second project")
-third = Project(id=3, name="third", description="The Third project")
-
-# Projects DB
-projects_db = {1: first, 2: second, 3: third}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - #
+from src.database import get_db
+from src.projects import service as project_service
+from src.projects.schemas import Project, ProjectCreate, ProjectUpdate
 
 router = APIRouter(prefix="/projects")
 
 
-@router.get("/")
-def read_projects() -> dict[int, Project]:
+@router.get("/", status_code=status.HTTP_200_OK)
+def read_projects(db: Session = Depends(get_db)) -> list[Project]:
     """Read all projects"""
-    return projects_db
+    return project_service.read_all(db)
 
 
-@router.get("/{project_id}/info")
-def read_project(project_id: int) -> Project:
+@router.get("/{proj_id}/info", status_code=status.HTTP_200_OK)
+def read_project(proj_id: str, db: Session = Depends(get_db)) -> Project:
     """Read project description"""
-    if project_id not in projects_db:
+    project = project_service.read(proj_id, db)
+    if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    return projects_db[project_id]
+    return project
 
 
-@router.post("/")
-def create_project(project: Project) -> Project:
+@router.post("/", status_code=status.HTTP_201_CREATED)
+def create_project(project: ProjectCreate, db: Session = Depends(get_db)) -> Project:
     """Create new project"""
-    if project.id in projects_db:
-        raise HTTPException(
-            status_code=400, detail=f"Project with {project.id} already exists."
-        )
-
-    projects_db[project.id] = project
-    return project
+    new_project = project_service.create(project, db)
+    return new_project
 
 
-@router.put("/{project_id}/info")
-def update_project(project_id: int, project: Project) -> Project:
+@router.put("/{proj_id}/info", status_code=status.HTTP_200_OK)
+def update_project(
+    proj_id: str, project: ProjectUpdate, db: Session = Depends(get_db)
+) -> Project:
     """Update project"""
-    if project_id not in projects_db:
+    updated_project = project_service.update(proj_id, project, db)
+    if not updated_project:
         raise HTTPException(
-            status_code=404, detail=f"Project with {project_id} does not exist."
+            status_code=404, detail=f"Project with {proj_id} does not exist."
         )
-
-    projects_db[project_id] = project
-    return project
+    return updated_project
 
 
-@router.delete("/{project_id}")
-def delete_project(project_id: int) -> Project:
+@router.delete("/{proj_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_project(proj_id: str, db: Session = Depends(get_db)) -> None:
     """Delete project"""
-    if project_id not in projects_db:
-        raise HTTPException(
-            status_code=404, detail=f"Project with {project_id} does not exist."
-        )
 
-    project = projects_db.pop(project_id)
-    return project
+    deleted_project = project_service.delete(proj_id, db)
+    if not deleted_project:
+        raise HTTPException(
+            status_code=404, detail=f"Project with {proj_id} does not exist."
+        )

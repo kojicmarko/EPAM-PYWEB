@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "epam-pyweb"
+name = "final-pyweb"
 version = "0.1.0"
 description = ""
 authors = ["Marko Kojic <kojicmarko96@gmail.com>"]
@@ -9,6 +9,10 @@ readme = "README.md"
 python = "^3.10"
 fastapi = "^0.109.2"
 uvicorn = {extras = ["standard"], version = "^0.27.1"}
+sqlalchemy = "^2.0.27"
+alembic = "^1.13.1"
+python-dotenv = "^1.0.1"
+psycopg = {extras = ["binary"], version = "^3.1.18"}
 
 
 [tool.poetry.group.dev.dependencies]
@@ -36,8 +40,12 @@ lint.select = [
 ]
 lint.ignore = ["ISC001"]
 
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.params.Depends", "fastapi.Query", "fastapi.params.Query"]
+
 [tool.mypy]
 strict = true
+plugins = ["sqlalchemy.ext.mypy.plugin"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -q"
