@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 
 from src.projects import router as projects_router
+from src.utils.logger.main import setup_logging
+
+setup_logging()
 
 app = FastAPI()
 
