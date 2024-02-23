@@ -2,7 +2,7 @@ from typing import Generator, Iterator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import MetaData, create_engine, delete
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.database import Base, get_db
@@ -27,26 +27,22 @@ def override_get_db() -> Generator[Session, None, None]:
 app.dependency_overrides[get_db] = override_get_db
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def db() -> Generator[Session, None, None]:
     session = TestingSessionLocal()
+    session.begin_nested()
     yield session
-    # After the module, drop all tables in the database
-    meta = MetaData()
-    meta.reflect(bind=engine)
-    for table in reversed(meta.sorted_tables):
-        session.execute(delete(table))
-    session.commit()
+    session.rollback()
     session.close()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def client() -> Generator[TestClient, None, None]:
     with TestClient(app) as c:
         yield c
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def test_data(db: Session) -> Iterator[tuple[str, str, str]]:
     # Create 3 projects
     project1 = ProjectORM(name="first", description="The First Project")
