@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
 from alembic import context
-from src.database import Base
+from src.projects.models import ProjectORM
 
 load_dotenv()
 
@@ -21,7 +21,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 
-target_metadata = Base.metadata
+target_metadata = [ProjectORM.metadata]
 # target_metadata = None
 
 # other values from the config, defined by the needs of env.py,

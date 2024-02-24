@@ -5,8 +5,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.database import Base, get_db
+from src.database import get_db
 from src.main import app
+from src.models import Base
 from src.projects.models import ProjectORM
 
 TEST_DATABASE_URL = "postgresql+psycopg://postgres:postgres@127.0.0.1:3254/test"

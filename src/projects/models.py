@@ -1,13 +1,11 @@
-from uuid import uuid4
+from sqlalchemy import String, Text
+from sqlalchemy.orm import Mapped, mapped_column
 
-from sqlalchemy import UUID, Column, String, Text
-
-from src.database import Base
+from src.models import Base
 
 
 class ProjectORM(Base):
     __tablename__ = "projects"
 
-    id = Column(UUID, primary_key=True, default=uuid4)
-    name = Column(String(40), nullable=False)
-    description = Column(Text, nullable=True)
+    name: Mapped[str] = mapped_column(String(40), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
