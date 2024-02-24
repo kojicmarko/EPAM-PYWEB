@@ -1,5 +1,7 @@
-from sqlalchemy import String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from uuid import UUID
+
+from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models import Base
 
@@ -9,3 +11,8 @@ class ProjectORM(Base):
 
     name: Mapped[str] = mapped_column(String(40), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
+    users = relationship(
+        "UserORM", secondary="m2m_projects_users", back_populates="projects"
+    )
+    owner_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=True)
+    owner = relationship("UserORM")

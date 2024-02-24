@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 
 from alembic import context
 from src.config import db_url
-from src.projects.models import ProjectORM
+from src.models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -18,7 +18,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 
-target_metadata = [ProjectORM.metadata]
+target_metadata = Base.metadata
 # target_metadata = None
 
 # other values from the config, defined by the needs of env.py,
