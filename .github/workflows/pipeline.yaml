@@ -3,6 +3,7 @@ env:
   DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:3254/test
   SECRET_KEY: 306456ef543dca447c4e6eee7c2c7ced5298330e15d107d3435c4e25eba5e54f
   ALGORITHM: HS256
+  TOKEN_EXPIRE_TIME: 20
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
