@@ -7,7 +7,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from src.config import algorithm, secret_key
+from src.config import settings
 from src.database import get_db
 from src.users import models
 from src.users.schemas import User, UserAuth
@@ -45,7 +45,9 @@ def create_token(data: dict[str, str | datetime], expires_delta: timedelta) -> s
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode["exp"] = expire
-    encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=algorithm)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.secret_key, algorithm=settings.algorithm
+    )
     return encoded_jwt
 
 
@@ -59,7 +61,9 @@ def get_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, secret_key, algorithms=[algorithm])
+        payload = jwt.decode(
+            token, settings.secret_key, algorithms=[settings.algorithm]
+        )
         user_id = payload.get("id")
         if user_id is None:
             raise credentials_exception

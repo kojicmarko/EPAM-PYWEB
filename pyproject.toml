@@ -18,6 +18,7 @@ passlib = {extras = ["argon2"], version = "^1.7.4"}
 types-python-jose = "^3.3.4.20240106"
 types-passlib = "^1.7.7.20240106"
 python-multipart = "^0.0.9"
+pydantic-settings = "^2.2.1"
 
 
 [tool.poetry.group.dev.dependencies]

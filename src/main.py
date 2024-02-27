@@ -8,6 +8,7 @@ setup_logging()
 
 app = FastAPI()
 
+
 app.include_router(projects_router.router)
 app.include_router(auth_router.router)
 

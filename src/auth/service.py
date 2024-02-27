@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from src.auth.schemas import Token
 from src.auth.utils import authenticate_user, create_token, pwd_context
-from src.config import token_expire_time
+from src.config import settings
 from src.users import models
 from src.users.schemas import User, UserCreate
 
@@ -22,7 +22,7 @@ def login(form_data: OAuth2PasswordRequestForm, db: Session) -> Token | None:
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         return None
-    token_expires = timedelta(minutes=float(token_expire_time))
+    token_expires = timedelta(minutes=float(settings.token_expire_time))
     token = create_token(
         data={"username": user.username, "id": str(user.id)},
         expires_delta=token_expires,
