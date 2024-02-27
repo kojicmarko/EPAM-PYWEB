@@ -1,6 +1,7 @@
 from typing import Annotated
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
 from src.auth.utils import get_user
@@ -23,7 +24,7 @@ def read_projects(
 
 @router.get("/{proj_id}/info", status_code=status.HTTP_200_OK)
 def read_project(
-    proj_id: str,
+    proj_id: Annotated[UUID, Path(title="Project ID")],
     user: Annotated[User, Depends(get_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> Project:
@@ -47,7 +48,7 @@ def create_project(
 
 @router.put("/{proj_id}/info", status_code=status.HTTP_200_OK)
 def update_project(
-    proj_id: str,
+    proj_id: Annotated[UUID, Path(title="Project ID")],
     project: ProjectUpdate,
     user: Annotated[User, Depends(get_user)],
     db: Annotated[Session, Depends(get_db)],
@@ -62,7 +63,7 @@ def update_project(
 
 @router.delete("/{proj_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_project(
-    proj_id: str,
+    proj_id: Annotated[UUID, Path(title="Project ID")],
     user: Annotated[User, Depends(get_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> None:
@@ -75,7 +76,7 @@ def delete_project(
 
 @router.post("/{proj_id}/invite", status_code=status.HTTP_201_CREATED)
 def invite(
-    proj_id: str,
+    proj_id: Annotated[UUID, Path(title="Project ID")],
     user: Annotated[str, Query(...)],
     db: Annotated[Session, Depends(get_db)],
     owner: Annotated[User, Depends(get_user)],

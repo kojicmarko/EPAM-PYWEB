@@ -8,12 +8,7 @@ from src.projects.schemas import Project, ProjectCreate, ProjectUpdate
 from src.users.models import User as UserModel
 
 
-def get_by_id(proj_id: str, db: Session) -> models.Project | None:
-    try:
-        UUID(proj_id, version=4)
-    except ValueError:
-        return None
-
+def get_by_id(proj_id: UUID, db: Session) -> models.Project | None:
     return db.query(models.Project).filter(models.Project.id == proj_id).first()
 
 
@@ -27,7 +22,7 @@ def read_all(user_id: UUID, db: Session) -> list[Project]:
     return [Project.model_validate(proj) for proj in proj_list_orm]
 
 
-def read(proj_id: str, user_id: UUID, db: Session) -> Project | None:
+def read(proj_id: UUID, user_id: UUID, db: Session) -> Project | None:
     proj_orm = get_by_id(proj_id, db)
 
     if not proj_orm:
@@ -55,7 +50,7 @@ def create(proj_create: ProjectCreate, user_id: UUID, db: Session) -> Project:
 
 
 def update(
-    proj_id: str, proj_update: ProjectUpdate, user_id: UUID, db: Session
+    proj_id: UUID, proj_update: ProjectUpdate, user_id: UUID, db: Session
 ) -> Project | None:
     proj_orm = get_by_id(proj_id, db)
 
@@ -81,7 +76,7 @@ def update(
     return Project.model_validate(proj_orm)
 
 
-def delete(proj_id: str, user_id: UUID, db: Session) -> bool:
+def delete(proj_id: UUID, user_id: UUID, db: Session) -> bool:
     proj_orm = get_by_id(proj_id, db)
 
     if not proj_orm or proj_orm.owner_id != user_id:
@@ -92,7 +87,7 @@ def delete(proj_id: str, user_id: UUID, db: Session) -> bool:
     return True
 
 
-def invite(proj_id: str, username: str, owner_id: UUID, db: Session) -> bool:
+def invite(proj_id: UUID, username: str, owner_id: UUID, db: Session) -> bool:
     proj_orm = get_by_id(proj_id, db)
 
     if not proj_orm or proj_orm.owner_id != owner_id:

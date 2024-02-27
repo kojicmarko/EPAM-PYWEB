@@ -53,7 +53,7 @@ def test_read_nonexistent_project(
     test_token: str,
 ) -> None:
     res = client.get(
-        "/projects/not-a-valid-id/info",
+        "/projects/bc3f2dac-4915-4144-979e-569b8cc77534/info",
         headers={"Authorization": f"Bearer {test_token}"},
     )
 
@@ -122,7 +122,7 @@ def test_update_nonexistent_project(
     data = {"name": "updated_project"}
 
     res = client.put(
-        "/projects/not-a-valid-id/info",
+        "/projects/bc3f2dac-4915-4144-979e-569b8cc77534/info",
         json=data,
         headers={"Authorization": f"Bearer {test_token}"},
     )
@@ -153,7 +153,8 @@ def test_delete_nonexistent_project(
     test_token: str,
 ) -> None:
     res = client.delete(
-        "/projects/not-a-valid-id", headers={"Authorization": f"Bearer {test_token}"}
+        "/projects/bc3f2dac-4915-4144-979e-569b8cc77534/",
+        headers={"Authorization": f"Bearer {test_token}"},
     )
 
     assert res.status_code == 404
