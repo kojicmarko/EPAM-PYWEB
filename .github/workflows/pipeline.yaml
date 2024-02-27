@@ -1,9 +1,9 @@
 on: [push]
 env:
-  DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:3254/test
-  SECRET_KEY: 306456ef543dca447c4e6eee7c2c7ced5298330e15d107d3435c4e25eba5e54f
-  ALGORITHM: HS256
-  TOKEN_EXPIRE_TIME: 20
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  SECRET_KEY:  ${{ secrets.SECRET_KEY }}
+  ALGORITHM: ${{ secrets.ALGORITHM }}
+  TOKEN_EXPIRE_TIME: ${{ secrets.TOKEN_EXPIRE_TIME }}
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
@@ -11,9 +11,9 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         ports:
           - 3254:5432
         options: >-
