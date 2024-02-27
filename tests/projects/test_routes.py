@@ -1,87 +1,212 @@
-from typing import Iterator
-
-from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from src.projects.schemas import ProjectCreate, ProjectUpdate
+from src.projects.schemas import Project
+from src.users.schemas import User
 
 
 def test_read_projects(
-    client: TestClient, db: Session, test_data: Iterator[tuple[str, str, str]]
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_projects: list[Project],
+    test_token: str,
 ) -> None:
-    first_id, second_id, third_id = test_data
+    res = client.get("/projects/", headers={"Authorization": f"Bearer {test_token}"})
 
-    res = client.get("/projects/")
-    projects = res.json()
-    project_ids = {project["id"] for project in projects}
-
-    assert (
-        len(projects) == 3
-        and first_id in project_ids
-        and second_id in project_ids
-        and third_id in project_ids
-    )
+    assert res.json() == [
+        {
+            "id": str(project.id),
+            "name": project.name,
+            "description": project.description,
+            "owner_id": str(project.owner_id),
+        }
+        for project in test_projects
+    ]
 
 
 def test_read_project(
-    client: TestClient, db: Session, test_data: Iterator[tuple[str, str, str]]
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_projects: list[Project],
+    test_token: str,
 ) -> None:
-    first_id, _, _ = test_data
+    project = test_projects[0]
 
-    res = client.get(f"/projects/{first_id}/info")
+    res = client.get(
+        f"/projects/{project.id}/info",
+        headers={"Authorization": f"Bearer {test_token}"},
+    )
 
     assert res.json() == {
-        "id": first_id,
-        "name": "first",
-        "description": "The First Project",
+        "id": str(project.id),
+        "name": project.name,
+        "description": project.description,
+        "owner_id": str(project.owner_id),
     }
 
 
-def test_read_nonexistent_project(client: TestClient) -> None:
-    res = client.get("/projects/123e4567-e89b-12d3-a456-426614174000/info")
+def test_read_nonexistent_project(
+    client: TestClient,
+    test_user: User,
+    test_token: str,
+) -> None:
+    res = client.get(
+        "/projects/not-a-valid-id/info",
+        headers={"Authorization": f"Bearer {test_token}"},
+    )
 
     assert res.status_code == 404
 
 
-def test_create_project(client: TestClient, db: Session) -> None:
-    data = {"name": "fourth", "description": "The Fourth project"}
+def test_unauthorized_project_access(
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_projects: list[Project],
+    unauthorized_token: str,
+) -> None:
+    project = test_projects[0]
 
-    res = client.post("/projects/", json=data)
+    res = client.get(
+        f"/projects/{project.id}/info",
+        headers={"Authorization": f"Bearer {unauthorized_token}"},
+    )
 
-    assert ProjectCreate(**res.json()).model_dump() == data
+    assert res.status_code == 404
+
+
+def test_create_project(
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_token: str,
+) -> None:
+    data = {"name": "project9999"}
+
+    res = client.post(
+        "/projects/", json=data, headers={"Authorization": f"Bearer {test_token}"}
+    )
+
+    assert res.json()["name"] == data["name"] and res.json()["owner_id"] == str(
+        test_user.id
+    )
 
 
 def test_update_project(
-    client: TestClient, db: Session, test_data: Iterator[tuple[str, str, str]]
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_projects: list[Project],
+    test_token: str,
 ) -> None:
-    first_id, _, _ = test_data
-    data = {"name": "updated", "description": "Updated project"}
+    project = test_projects[0]
+    data = {"name": "updated_project"}
 
-    res = client.put(f"/projects/{first_id}/info", json=data)
+    res = client.put(
+        f"/projects/{project.id}/info",
+        json=data,
+        headers={"Authorization": f"Bearer {test_token}"},
+    )
 
-    assert ProjectUpdate(**res.json()).model_dump() == data
+    assert res.json()["name"] == data["name"]
 
 
-def test_update_nonexistent_project(client: TestClient) -> None:
-    data = {"name": "updated", "description": "Updated project"}
+def test_update_nonexistent_project(
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_token: str,
+) -> None:
+    data = {"name": "updated_project"}
 
-    res = client.put("/projects/not-a-valid-uuid/info", json=data)
+    res = client.put(
+        "/projects/not-a-valid-id/info",
+        json=data,
+        headers={"Authorization": f"Bearer {test_token}"},
+    )
 
     assert res.status_code == 404
 
 
 def test_delete_project(
-    client: TestClient, db: Session, test_data: Iterator[tuple[str, str, str]]
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_projects: list[Project],
+    test_token: str,
 ) -> None:
-    first_id, _, _ = test_data
+    project = test_projects[0]
 
-    res = client.delete(f"/projects/{first_id}")
+    res = client.delete(
+        f"/projects/{project.id}", headers={"Authorization": f"Bearer {test_token}"}
+    )
 
-    assert res.status_code == status.HTTP_204_NO_CONTENT
+    assert res.status_code == 204
 
 
-def test_delete_nonexistent_project(client: TestClient) -> None:
-    res = client.delete("/projects/123e4567-e89b-12d3-a456-426614174000")
+def test_delete_nonexistent_project(
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_token: str,
+) -> None:
+    res = client.delete(
+        "/projects/not-a-valid-id", headers={"Authorization": f"Bearer {test_token}"}
+    )
 
     assert res.status_code == 404
+
+
+def test_user_cannot_delete_project(
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_projects: list[Project],
+    participant_token: str,
+) -> None:
+    project = test_projects[0]
+
+    res = client.delete(
+        f"/projects/{project.id}",
+        headers={"Authorization": f"Bearer {participant_token}"},
+    )
+
+    assert res.status_code == 404
+
+
+def test_invite_to_project(
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_projects: list[Project],
+    test_token: str,
+    invited_user: User,
+) -> None:
+    project = test_projects[0]
+
+    res = client.post(
+        f"/projects/{project.id}/invite?user={invited_user.username}",
+        headers={"Authorization": f"Bearer {test_token}"},
+    )
+
+    assert res.status_code == 201
+
+
+def test_user_cannot_invite_to_project(
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_projects: list[Project],
+    participant_token: str,
+    invited_user: User,
+) -> None:
+    project = test_projects[0]
+
+    res = client.post(
+        f"/projects/{project.id}/invite?user={invited_user.username}",
+        headers={"Authorization": f"Bearer {participant_token}"},
+    )
+
+    assert res.status_code == 403

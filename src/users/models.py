@@ -4,11 +4,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.models import Base
 
 
-class UserORM(Base):
+class User(Base):
     __tablename__ = "users"
 
     username: Mapped[str] = mapped_column(String(30), nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
     projects = relationship(
-        "ProjectORM", secondary="m2m_projects_users", back_populates="users"
+        "Project", secondary="m2m_projects_users", back_populates="users"
     )

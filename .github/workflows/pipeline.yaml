@@ -1,7 +1,6 @@
 on: [push]
 env:
   DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:3254/test
-  TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@127.0.0.1:3254/test
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest

@@ -6,13 +6,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.models import Base
 
 
-class ProjectORM(Base):
+class Project(Base):
     __tablename__ = "projects"
 
     name: Mapped[str] = mapped_column(String(40), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
     users = relationship(
-        "UserORM", secondary="m2m_projects_users", back_populates="projects"
+        "User", secondary="m2m_projects_users", back_populates="projects"
     )
     owner_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=True)
-    owner = relationship("UserORM")
+    owner = relationship("User")

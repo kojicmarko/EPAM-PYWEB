@@ -1,17 +1,22 @@
-from typing import Generator, Iterator
+from datetime import timedelta
+from typing import Callable, Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.config import test_db_url
+from src.auth import service as auth_service
+from src.auth.utils import create_token
+from src.config import db_url
 from src.database import get_db
 from src.main import app
 from src.models import Base
-from src.projects.models import ProjectORM
+from src.projects import service as project_service
+from src.projects.schemas import Project, ProjectCreate
+from src.users.schemas import User, UserCreate
 
-engine = create_engine(test_db_url)
+engine = create_engine(db_url)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base.metadata.create_all(bind=engine)
@@ -31,9 +36,7 @@ app.dependency_overrides[get_db] = override_get_db
 @pytest.fixture(scope="function")
 def db() -> Generator[Session, None, None]:
     session = TestingSessionLocal()
-    session.begin_nested()
     yield session
-    session.rollback()
     session.close()
 
 
@@ -44,19 +47,79 @@ def client() -> Generator[TestClient, None, None]:
 
 
 @pytest.fixture(scope="function")
-def test_data(db: Session) -> Iterator[tuple[str, str, str]]:
-    # Create 3 projects
-    project1 = ProjectORM(name="first", description="The First Project")
-    project2 = ProjectORM(name="second", description="The Second Project")
-    project3 = ProjectORM(name="third", description="The Third Project")
+def test_projects(db: Session, test_user: User) -> list[Project]:
+    projects = [ProjectCreate(name=f"project{i}") for i in range(3)]
+    return [project_service.create(project, test_user.id, db) for project in projects]
 
-    # Add the projects to the session
-    db.add(project1)
-    db.add(project2)
-    db.add(project3)
 
-    # Commit the session to save the projects
+@pytest.fixture(scope="function", autouse=True)
+def truncate_tables(db: Session) -> None:
+    db.execute(text("SET session_replication_role = replica;"))
+
+    tables_to_truncate = ["users", "projects", "m2m_projects_users"]
+    for table_name in tables_to_truncate:
+        db.execute(text(f"TRUNCATE TABLE {table_name} CASCADE"))
     db.commit()
 
-    # Yield the ids of the projects
-    yield str(project1.id), str(project2.id), str(project3.id)
+    db.execute(text("SET session_replication_role = default;"))
+
+
+# USERS:
+@pytest.fixture
+def user_factory(db: Session) -> Callable[..., User]:
+    def _create_user(username: str) -> User:
+        user_create = UserCreate(username=username, password="12345678")
+        return auth_service.create(user_create, db)
+
+    return _create_user
+
+
+@pytest.fixture(scope="function")
+def test_user(user_factory: Callable[..., User]) -> User:
+    return user_factory("test")
+
+
+@pytest.fixture(scope="function")
+def unauthorized_user(user_factory: Callable[..., User]) -> User:
+    return user_factory("unauthorized")
+
+
+@pytest.fixture(scope="function")
+def invited_user(user_factory: Callable[..., User]) -> User:
+    return user_factory("invited")
+
+
+@pytest.fixture
+def participant_user(user_factory: Callable[..., User]) -> User:
+    return user_factory("participant")
+
+
+# TOKENS:
+@pytest.fixture
+def token_factory() -> Callable[..., str]:
+    def _create_token(user: User) -> str:
+        token_expires = timedelta(minutes=30)
+        token = create_token(
+            data={"username": user.username, "id": str(user.id)},
+            expires_delta=token_expires,
+        )
+        return token
+
+    return _create_token
+
+
+@pytest.fixture(scope="function")
+def test_token(token_factory: Callable[..., str], test_user: User) -> str:
+    return token_factory(test_user)
+
+
+@pytest.fixture(scope="function")
+def unauthorized_token(
+    token_factory: Callable[..., str], unauthorized_user: User
+) -> str:
+    return token_factory(unauthorized_user)
+
+
+@pytest.fixture
+def participant_token(token_factory: Callable[..., str], participant_user: User) -> str:
+    return token_factory(participant_user)

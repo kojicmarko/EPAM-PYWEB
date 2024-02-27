@@ -13,6 +13,9 @@ services:
     environment:
       - DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/pyweb
       - RELOAD=true
+      - SECRET_KEY=B01D81075A17B5BE4ACA9DA369E556FF
+      - ALGORITHM=HS256
+      - TOKEN_EXPIRE_TIME=15
   db:
     image: postgres:15
     container_name: db
