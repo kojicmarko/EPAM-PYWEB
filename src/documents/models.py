@@ -1,7 +1,12 @@
 from uuid import UUID
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
+from sqlalchemy.orm import (
+    Mapped,
+    declared_attr,
+    mapped_column,
+    relationship,
+)
 
 from src.models import Base
 
@@ -14,10 +19,6 @@ class BaseDocument(Base):
     @declared_attr
     def owner_id(self) -> Mapped[UUID]:
         return mapped_column(ForeignKey("users.id"), nullable=True)
-
-    @declared_attr
-    def owner(self):
-        return relationship("User")
 
 
 class Document(BaseDocument):
