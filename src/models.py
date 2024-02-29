@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import DateTime, ForeignKey, func
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
@@ -21,11 +21,3 @@ class ProjectUser(Base):
     project_id: Mapped[UUID] = mapped_column(
         ForeignKey("projects.id"), primary_key=True
     )
-
-
-class BaseDocument(Base):
-    __tablename__ = "logos"
-    name: Mapped[str] = mapped_column(nullable=False)
-    url: Mapped[str] = mapped_column(nullable=False)
-    owner_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=True)
-    owner = relationship("User")
