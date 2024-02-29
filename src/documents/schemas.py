@@ -4,23 +4,29 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class ProjectBase(BaseModel):
+class DocumentBase(BaseModel):
     name: str = Field(max_length=40)
-    description: Optional[str] = None
 
 
-class ProjectCreate(ProjectBase):
+class DocumentCreate(DocumentBase):
     pass
 
 
-class Project(ProjectBase):
+class Document(DocumentBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    url: str
+    id: UUID
+    owner_id: UUID
+    project_id: UUID
+
+
+class DocumentUpdate(BaseModel):
+    name: Optional[str] = Field(max_length=40)
+
+
+class Logo(DocumentBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
     owner_id: UUID
-    logo_id: Optional[UUID] = None
-
-
-class ProjectUpdate(BaseModel):
-    name: Optional[str] = Field(max_length=40)
-    description: Optional[str] = None

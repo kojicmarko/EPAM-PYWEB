@@ -1,7 +1,9 @@
 from datetime import timedelta
+from io import BytesIO
 from typing import Callable, Generator
 
 import pytest
+from fastapi import UploadFile
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
@@ -62,6 +64,13 @@ def truncate_tables(db: Session) -> None:
     db.commit()
 
     db.execute(text("SET session_replication_role = default;"))
+
+
+@pytest.fixture(scope="function")
+def mock_upload_file() -> UploadFile:
+    mock_file = BytesIO(b"file content")
+    mock_file.name = "mock_file.pdf"
+    return UploadFile(file=mock_file)
 
 
 # USERS:

@@ -1,12 +1,15 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
-from src.auth.utils import get_user
 from src.database import get_db
+from src.documents import service as doc_service
+from src.documents.dependencies import is_participant, valid_file
+from src.documents.schemas import Document
 from src.projects import service as project_service
+from src.projects.dependencies import get_user
 from src.projects.schemas import Project, ProjectCreate, ProjectUpdate
 from src.users.schemas import User
 from src.utils.logger.main import logger
@@ -42,8 +45,7 @@ def create_project(
     db: Annotated[Session, Depends(get_db)],
 ) -> Project:
     logger.debug(f"User {user.username}, Created Project {project.model_dump()}")
-    new_project = project_service.create(project, user.id, db)
-    return new_project
+    return project_service.create(project, user.id, db)
 
 
 @router.put("/{proj_id}/info", status_code=status.HTTP_200_OK)
@@ -78,11 +80,22 @@ def delete_project(
 def invite(
     proj_id: Annotated[UUID, Path(title="Project ID")],
     user: Annotated[str, Query(...)],
-    db: Annotated[Session, Depends(get_db)],
     owner: Annotated[User, Depends(get_user)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> None:
     is_invited = project_service.invite(proj_id, user, owner.id, db)
     if not is_invited:
         raise HTTPException(
             status_code=403, detail="Cannot invite user to the project."
         )
+
+
+@router.post("/{proj_id}/documents", status_code=status.HTTP_201_CREATED)
+async def upload(
+    proj_id: UUID,
+    document: Annotated[UploadFile, Depends(valid_file)],
+    user: Annotated[User, Depends(is_participant)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Document:
+    url = await doc_service.file_upload(document, proj_id)
+    return doc_service.create(document.filename, url, proj_id, user, db)

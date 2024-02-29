@@ -1,14 +1,11 @@
 from datetime import datetime, timedelta
-from typing import Annotated, Literal
 
-from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+from jose import jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from src.config import settings
-from src.database import get_db
 from src.users import models
 from src.users.schemas import User, UserAuth
 
@@ -24,15 +21,13 @@ def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def authenticate_user(
-    db: Session, username: str, password: str
-) -> User | Literal[False]:
+def authenticate_user(db: Session, username: str, password: str) -> User | None:
     user_orm = db.query(models.User).filter(models.User.username == username).first()
 
     if not user_orm:
-        return False
+        return None
     if not verify_password(password, user_orm.password_hash):
-        return False
+        return None
     user = UserAuth.model_validate(user_orm)
 
     return user
@@ -49,27 +44,3 @@ def create_token(data: dict[str, str | datetime], expires_delta: timedelta) -> s
         to_encode, settings.secret_key, algorithm=settings.algorithm
     )
     return encoded_jwt
-
-
-def get_user(
-    db: Annotated[Session, Depends(get_db)],
-    token: Annotated[str, Depends(oauth2_scheme)],
-) -> User:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(
-            token, settings.secret_key, algorithms=[settings.algorithm]
-        )
-        user_id = payload.get("id")
-        if user_id is None:
-            raise credentials_exception
-    except JWTError as err:
-        raise credentials_exception from err
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if user is None:
-        raise credentials_exception
-    return User.model_validate(user)

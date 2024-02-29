@@ -8,21 +8,24 @@ services:
       - "80:80"
     volumes:
       - ./src:/code/src
+      - ./bucket:/code/bucket
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/pyweb
+      - DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/attempt
       - RELOAD=true
       - SECRET_KEY=B01D81075A17B5BE4ACA9DA369E556FF
       - ALGORITHM=HS256
       - TOKEN_EXPIRE_TIME=15
   db:
-    image: postgres:15
+    image: postgres:15-alpine
     container_name: db
+    ports:
+      - "3254:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=pyweb
+      - POSTGRES_DB=attempt
     volumes:
       - db_data:/var/lib/postgresql/data/
 

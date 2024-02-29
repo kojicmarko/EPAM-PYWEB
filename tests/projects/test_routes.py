@@ -1,3 +1,7 @@
+import os
+from io import BytesIO
+
+from fastapi import UploadFile
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -20,6 +24,7 @@ def test_read_projects(
             "name": project.name,
             "description": project.description,
             "owner_id": str(project.owner_id),
+            "logo_id": project.logo_id,
         }
         for project in test_projects
     ]
@@ -44,6 +49,7 @@ def test_read_project(
         "name": project.name,
         "description": project.description,
         "owner_id": str(project.owner_id),
+        "logo_id": project.logo_id,
     }
 
 
@@ -211,3 +217,54 @@ def test_user_cannot_invite_to_project(
     )
 
     assert res.status_code == 403
+
+
+def test_upload_document_to_project(
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_projects: list[Project],
+    test_token: str,
+    mock_upload_file: UploadFile,
+) -> None:
+    project = test_projects[0]
+
+    data = {
+        "file": ("mock_file.pdf", mock_upload_file.file, mock_upload_file.content_type)
+    }
+
+    res = client.post(
+        f"/projects/{project.id}/documents",
+        headers={"Authorization": f"Bearer {test_token}"},
+        files=data,
+    )
+
+    expected_end_of_path = os.path.join(
+        "bucket", "documents", f"{project.id}_mock_file.pdf"
+    )
+
+    assert res.json()["url"].endswith(expected_end_of_path)
+
+
+def test_upload_unsupported_document_to_project(
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_projects: list[Project],
+    test_token: str,
+) -> None:
+    project = test_projects[0]
+
+    mock_file = BytesIO(b"file content")
+    mock_file.name = "mock_file.txt"
+    upload_file = UploadFile(file=mock_file)
+
+    data = {"file": ("mock_file.txt", upload_file.file, upload_file.content_type)}
+
+    res = client.post(
+        f"/projects/{project.id}/documents",
+        headers={"Authorization": f"Bearer {test_token}"},
+        files=data,
+    )
+
+    assert res.status_code == 422

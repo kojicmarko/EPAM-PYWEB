@@ -8,6 +8,12 @@ class Settings(BaseSettings):
     secret_key: str = ""
     algorithm: str = ""
     token_expire_time: float = 0
+    valid_types: dict[str, str] = {
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",  # noqa
+        "application/pdf": ".pdf",
+        "image/png": ".png",
+        "image/jpeg": ".jpg",
+    }
 
     model_config = SettingsConfigDict(env_file=".env")
 

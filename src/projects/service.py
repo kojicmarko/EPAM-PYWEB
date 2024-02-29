@@ -3,18 +3,18 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from src.models import ProjectUser
-from src.projects import models
+from src.projects.models import Project as ProjectModel
 from src.projects.schemas import Project, ProjectCreate, ProjectUpdate
 from src.users.models import User as UserModel
 
 
-def get_by_id(proj_id: UUID, db: Session) -> models.Project | None:
-    return db.query(models.Project).filter(models.Project.id == proj_id).first()
+def get_by_id(proj_id: UUID, db: Session) -> ProjectModel | None:
+    return db.query(ProjectModel).filter(ProjectModel.id == proj_id).first()
 
 
 def read_all(user_id: UUID, db: Session) -> list[Project]:
     proj_list_orm = (
-        db.query(models.Project)
+        db.query(ProjectModel)
         .join(ProjectUser)
         .filter(ProjectUser.user_id == user_id)
         .all()
@@ -39,7 +39,7 @@ def read(proj_id: UUID, user_id: UUID, db: Session) -> Project | None:
 
 
 def create(proj_create: ProjectCreate, user_id: UUID, db: Session) -> Project:
-    proj_orm = models.Project(**proj_create.model_dump(), owner_id=user_id)
+    proj_orm = ProjectModel(**proj_create.model_dump(), owner_id=user_id)
     db.add(proj_orm)
     db.commit()
 
