@@ -8,8 +8,9 @@ from src.database import get_db
 from src.documents import service as doc_service
 from src.documents.dependencies import is_participant, valid_file
 from src.documents.schemas import Document
+from src.projects import models
 from src.projects import service as project_service
-from src.projects.dependencies import get_user
+from src.projects.dependencies import get_proj_by_id, get_user
 from src.projects.schemas import Project, ProjectCreate, ProjectUpdate
 from src.users.schemas import User
 from src.utils.logger.main import logger
@@ -99,3 +100,21 @@ async def upload(
 ) -> Document:
     url = await doc_service.file_upload(document, proj_id)
     return doc_service.create(document.filename, url, proj_id, user, db)
+
+
+@router.get("/{proj_id}/documents")
+def read_documents(
+    proj_id: UUID,
+    user: Annotated[User, Depends(is_participant)],
+    project: Annotated[models.Project, Depends(get_proj_by_id)],
+    db: Annotated[Session, Depends(get_db)],
+    page: int = Query(1, ge=1, title="Page number"),
+    page_size: int = Query(5, ge=1, le=10, title="Documents per page"),
+) -> list[Document]:
+    if not project.documents:
+        return []
+    documents = list(project.documents)
+    start = (page - 1) * page_size
+    end = start + page_size
+    documents = documents[start:end]
+    return [Document.model_validate(document) for document in documents]

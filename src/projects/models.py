@@ -18,3 +18,4 @@ class Project(Base):
     owner = relationship("User")
     logo_id: Mapped[UUID] = mapped_column(ForeignKey("logos.id"), nullable=True)
     logo = relationship("Logo")
+    documents = relationship("Document", backref="projects")

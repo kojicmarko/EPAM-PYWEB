@@ -12,6 +12,8 @@ from src.auth import service as auth_service
 from src.auth.utils import create_token
 from src.config import settings
 from src.database import get_db
+from src.documents import service as doc_service
+from src.documents.schemas import Document, DocumentCreate
 from src.main import app
 from src.models import Base
 from src.projects import service as project_service
@@ -71,6 +73,20 @@ def mock_upload_file() -> UploadFile:
     mock_file = BytesIO(b"file content")
     mock_file.name = "mock_file.pdf"
     return UploadFile(file=mock_file)
+
+
+@pytest.fixture(scope="function")
+def test_documents(
+    db: Session, test_user: User, test_projects: list[Project]
+) -> list[Document]:
+    project = test_projects[0]
+    documents = [DocumentCreate(name=f"document{i}") for i in range(3)]
+    return [
+        doc_service.create(
+            document.name, f"/path/to/document{i}", project.id, test_user, db
+        )
+        for i, document in enumerate(documents)
+    ]
 
 
 # USERS:

@@ -5,7 +5,6 @@ from sqlalchemy.orm import (
     Mapped,
     declared_attr,
     mapped_column,
-    relationship,
 )
 
 from src.models import Base
@@ -24,7 +23,6 @@ class BaseDocument(Base):
 class Document(BaseDocument):
     __tablename__ = "documents"
     project_id: Mapped[UUID] = mapped_column(ForeignKey("projects.id"), nullable=True)
-    project = relationship("Project")
 
 
 class Logo(BaseDocument):

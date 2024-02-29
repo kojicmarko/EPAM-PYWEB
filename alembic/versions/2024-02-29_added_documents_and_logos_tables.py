@@ -1,8 +1,8 @@
-"""added logos and documents tables
+"""added documents and logos tables
 
-Revision ID: 85aab1122c4b
+Revision ID: 07ffc299dbad
 Revises: fbb71cdb4a6e
-Create Date: 2024-02-28 09:31:24.188702
+Create Date: 2024-02-29 13:46:26.770901
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "85aab1122c4b"
+revision: str = "07ffc299dbad"
 down_revision: Union[str, None] = "fbb71cdb4a6e"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -36,10 +36,10 @@ def upgrade() -> None:
     )
     op.create_table(
         "documents",
+        sa.Column("project_id", sa.Uuid(), nullable=True),
         sa.Column("name", sa.String(), nullable=False),
         sa.Column("url", sa.String(), nullable=False),
         sa.Column("owner_id", sa.Uuid(), nullable=True),
-        sa.Column("project_id", sa.Uuid(), nullable=True),
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),

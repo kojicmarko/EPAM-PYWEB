@@ -5,6 +5,7 @@ from fastapi import UploadFile
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from src.documents.schemas import Document
 from src.projects.schemas import Project
 from src.users.schemas import User
 
@@ -217,6 +218,37 @@ def test_user_cannot_invite_to_project(
     )
 
     assert res.status_code == 403
+
+
+def test_read_project_documents(
+    client: TestClient,
+    db: Session,
+    test_user: User,
+    test_projects: list[Project],
+    test_documents: list[Document],
+    test_token: str,
+) -> None:
+    project = test_projects[0]
+    page = 1
+    page_size = 2
+    start = (page - 1) * page_size
+    end = start + page_size
+
+    res = client.get(
+        f"/projects/{project.id}/documents?page={page}&page_size={page_size}",
+        headers={"Authorization": f"Bearer {test_token}"},
+    )
+
+    assert res.json() == [
+        {
+            "name": document.name,
+            "url": document.url,
+            "id": str(document.id),
+            "owner_id": str(document.owner_id),
+            "project_id": str(document.project_id),
+        }
+        for document in test_documents[start:end]
+    ]
 
 
 def test_upload_document_to_project(

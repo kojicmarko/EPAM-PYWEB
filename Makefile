@@ -19,12 +19,6 @@ lint-ci:
 test:
 	poetry run pytest --cov=src tests/
 docker-run:
-	docker-compose up -d
+	docker-compose up -d --build
 docker-stop:
-	docker-compose down
-docker-stop-v:
 	docker-compose down --volumes
-docker-test-up:
-	docker-compose -f docker-compose.test.yaml up -d --build
-docker-test-down:
-	docker-compose -f docker-compose.test.yaml down --volumes
