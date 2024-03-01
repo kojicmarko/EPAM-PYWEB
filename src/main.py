@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
-from src.auth import router as auth_router
 from src.projects import router as projects_router
+from src.users import router as auth_router
 from src.utils.logger.main import setup_logging
 
 setup_logging()

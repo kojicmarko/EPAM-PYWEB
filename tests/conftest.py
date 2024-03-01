@@ -8,8 +8,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.auth import service as auth_service
-from src.auth.utils import create_token
 from src.config import settings
 from src.database import get_db
 from src.documents import service as doc_service
@@ -18,7 +16,9 @@ from src.main import app
 from src.models import Base
 from src.projects import service as project_service
 from src.projects.schemas import Project, ProjectCreate
+from src.users.auth import service as auth_service
 from src.users.schemas import User, UserCreate
+from src.utils.auth import create_token
 
 engine = create_engine(settings.database_url)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

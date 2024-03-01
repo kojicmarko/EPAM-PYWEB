@@ -5,17 +5,17 @@ from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
 from src.documents import models
-from src.documents.schemas import Document
-from src.users.schemas import User
+from src.documents import schemas as doc_schemas
+from src.users import schemas as user_schemas
 
 
 def create(
-    name: str | None, url: str, proj_id: UUID, user: User, db: Session
-) -> Document:
+    name: str | None, url: str, proj_id: UUID, user: user_schemas.User, db: Session
+) -> doc_schemas.Document:
     document = models.Document(name=name, url=url, owner_id=user.id, project_id=proj_id)
     db.add(document)
     db.commit()
-    return Document.model_validate(document)
+    return doc_schemas.Document.model_validate(document)
 
 
 async def file_upload(file: UploadFile, proj_id: UUID) -> str:

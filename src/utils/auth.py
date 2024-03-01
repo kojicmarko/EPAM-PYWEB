@@ -6,8 +6,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from src.config import settings
-from src.users import models
-from src.users.schemas import User, UserAuth
+from src.users import models, schemas
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -21,14 +20,14 @@ def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def authenticate_user(db: Session, username: str, password: str) -> User | None:
+def authenticate_user(db: Session, username: str, password: str) -> schemas.User | None:
     user_orm = db.query(models.User).filter(models.User.username == username).first()
 
     if not user_orm:
         return None
     if not verify_password(password, user_orm.password_hash):
         return None
-    user = UserAuth.model_validate(user_orm)
+    user = schemas.UserAuth.model_validate(user_orm)
 
     return user
 
