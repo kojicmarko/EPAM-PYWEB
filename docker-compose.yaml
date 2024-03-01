@@ -14,9 +14,9 @@ services:
     environment:
       - DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/attempt
       - RELOAD=true
-      - SECRET_KEY=B01D81075A17B5BE4ACA9DA369E556FF
-      - ALGORITHM=HS256
-      - TOKEN_EXPIRE_TIME=15
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - TOKEN_EXPIRE_TIME=${TOKEN_EXPIRE_TIME}
   db:
     image: postgres:15-alpine
     container_name: db
