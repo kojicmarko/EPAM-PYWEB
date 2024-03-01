@@ -80,12 +80,20 @@ def test_documents(
     db: Session, test_user: User, test_projects: list[Project]
 ) -> list[Document]:
     project = test_projects[0]
-    documents = [DocumentCreate(name=f"document{i}") for i in range(3)]
+    files = [
+        UploadFile(file=BytesIO(b"file content"), filename=f"document{i}")
+        for i in range(3)
+    ]
+    documents = [DocumentCreate(name=file.filename) for file in files if file.filename]
     return [
         doc_service.create(
-            document.name, f"/path/to/document{i}", project.id, test_user, db
+            doc.name,
+            doc_service.file_upload(file, project.id),
+            project.id,
+            test_user,
+            db,
         )
-        for i, document in enumerate(documents)
+        for doc, file in zip(documents, files)
     ]
 
 

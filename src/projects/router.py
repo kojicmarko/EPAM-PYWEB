@@ -98,13 +98,13 @@ def invite(
 
 
 @router.post("/{proj_id}/documents", status_code=status.HTTP_201_CREATED)
-async def upload(
+def upload(
     proj_id: UUID,
     document: Annotated[UploadFile, Depends(valid_file)],
     user: Annotated[user_schemas.User, Depends(is_participant)],
     db: Annotated[Session, Depends(get_db)],
 ) -> doc_schemas.Document:
-    url = await doc_service.file_upload(document, proj_id)
+    url = doc_service.file_upload(document, proj_id)
     return doc_service.create(document.filename, url, proj_id, user, db)
 
 
