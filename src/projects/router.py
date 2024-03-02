@@ -108,19 +108,19 @@ def upload(
     return doc_service.create(document.filename, url, proj_id, user, db)
 
 
-@router.get("/{proj_id}/documents")
+@router.get(
+    "/{proj_id}/documents",
+    dependencies=[Depends(is_participant)],
+    status_code=status.HTTP_200_OK,
+)
 def read_documents(
-    proj_id: UUID,
-    user: Annotated[user_schemas.User, Depends(is_participant)],
     project: Annotated[models.Project, Depends(get_proj_by_id)],
     db: Annotated[Session, Depends(get_db)],
-    page: int = Query(1, ge=1, title="Page number"),
-    page_size: int = Query(5, ge=1, le=10, title="Documents per page"),
-) -> list[doc_schemas.Document]:
+    limit: int = Query(5, ge=1, le=10, title="Limit"),
+    offset: int = Query(0, ge=0, title="Offset"),
+) -> doc_schemas.PaginatedDocuments:
     if not project.documents:
-        return []
-    documents = list(project.documents)
-    start = (page - 1) * page_size
-    end = start + page_size
-    documents = documents[start:end]
-    return [doc_schemas.Document.model_validate(document) for document in documents]
+        return doc_schemas.PaginatedDocuments(
+            documents=[], count=0, next=None, prev=None
+        )
+    return doc_service.read_all(project.id, limit, offset, db)

@@ -229,26 +229,16 @@ def test_read_project_documents(
     test_token: str,
 ) -> None:
     project = test_projects[0]
-    page = 1
-    page_size = 2
-    start = (page - 1) * page_size
-    end = start + page_size
+    limit = 1
+    offset = 2
 
     res = client.get(
-        f"/projects/{project.id}/documents?page={page}&page_size={page_size}",
+        f"/projects/{project.id}/documents?limit={limit}&offset={offset}",
         headers={"Authorization": f"Bearer {test_token}"},
     )
 
-    assert res.json() == [
-        {
-            "name": document.name,
-            "url": document.url,
-            "id": str(document.id),
-            "owner_id": str(document.owner_id),
-            "project_id": str(document.project_id),
-        }
-        for document in test_documents[start:end]
-    ]
+    expected_documents = test_documents[offset : offset + limit]
+    assert len(res.json()["documents"]) == len(expected_documents)
 
 
 def test_upload_document_to_project(

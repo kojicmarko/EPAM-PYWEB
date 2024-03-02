@@ -3,6 +3,7 @@ import pathlib
 from uuid import UUID
 
 from fastapi import HTTPException, UploadFile, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import exists
 
@@ -11,6 +12,25 @@ from src.documents import schemas as doc_schemas
 from src.models import ProjectUser
 from src.projects.dependencies import get_proj_by_id
 from src.users import schemas as user_schemas
+
+
+def read_all(
+    proj_id: UUID, limit: int, offset: int, db: Session
+) -> doc_schemas.PaginatedDocuments:
+    count = db.query(func.count(doc_models.Document.id)).scalar()
+    doc_list = (
+        db.query(doc_models.Document)
+        .filter(doc_models.Document.project_id == proj_id)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    documents = [doc_schemas.Document.model_validate(doc) for doc in doc_list]
+    next_offset = offset + limit if offset + limit < count else None
+    prev_offset = max(0, offset - limit) if offset > 0 else None
+    return doc_schemas.PaginatedDocuments(
+        documents=documents, count=count, next=next_offset, prev=prev_offset
+    )
 
 
 def read(

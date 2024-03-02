@@ -25,6 +25,13 @@ class DocumentUpdate(BaseModel):
     name: Optional[str] = Field(max_length=40)
 
 
+class PaginatedDocuments(BaseModel):
+    documents: Optional[list[Document]]
+    count: Optional[int]
+    next: Optional[int]
+    prev: Optional[int]
+
+
 class Logo(DocumentBase):
     model_config = ConfigDict(from_attributes=True)
 
