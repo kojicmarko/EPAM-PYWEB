@@ -60,7 +60,13 @@ def test_projects(db: Session, test_user: User) -> list[Project]:
 def truncate_tables(db: Session) -> None:
     db.execute(text("SET session_replication_role = replica;"))
 
-    tables_to_truncate = ["users", "projects", "m2m_projects_users"]
+    tables_to_truncate = [
+        "users",
+        "projects",
+        "m2m_projects_users",
+        "documents",
+        "logos",
+    ]
     for table_name in tables_to_truncate:
         db.execute(text(f"TRUNCATE TABLE {table_name} CASCADE"))
     db.commit()

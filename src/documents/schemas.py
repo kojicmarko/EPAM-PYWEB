@@ -35,5 +35,6 @@ class PaginatedDocuments(BaseModel):
 class Logo(DocumentBase):
     model_config = ConfigDict(from_attributes=True)
 
+    url: str
     id: UUID
     owner_id: UUID

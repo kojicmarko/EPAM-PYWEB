@@ -2,12 +2,16 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from src.database import get_db
+from src.documents import models as doc_models
 from src.documents import schemas as doc_schemas
 from src.documents import service as doc_service
 from src.documents.dependencies import valid_file
+from src.logos import service as logo_service
+from src.logos.dependencies import get_logo_by_id
 from src.projects import models
 from src.projects import schemas as proj_schemas
 from src.projects import service as project_service
@@ -98,7 +102,7 @@ def invite(
 
 
 @router.post("/{proj_id}/documents", status_code=status.HTTP_201_CREATED)
-def upload(
+def upload_document(
     proj_id: UUID,
     document: Annotated[UploadFile, Depends(valid_file)],
     user: Annotated[user_schemas.User, Depends(is_participant)],
@@ -124,3 +128,58 @@ def read_documents(
             documents=[], count=0, next=None, prev=None
         )
     return doc_service.read_all(project.id, limit, offset, db)
+
+
+@router.post("/{proj_id}/logo", status_code=status.HTTP_201_CREATED)
+def upload_logo(
+    project: Annotated[models.Project, Depends(get_proj_by_id)],
+    logo: Annotated[UploadFile, Depends(valid_file)],
+    user: Annotated[user_schemas.User, Depends(is_participant)],
+    db: Annotated[Session, Depends(get_db)],
+) -> doc_schemas.Logo:
+    url = doc_service.file_upload(logo, project.id)
+    return logo_service.create(logo.filename, url, project, user, db)
+
+
+@router.get(
+    "/{proj_id}/logo",
+    dependencies=[Depends(is_participant)],
+    status_code=status.HTTP_200_OK,
+)
+def download_logo(
+    proj_id: UUID,
+    proj_logo: Annotated[doc_models.Logo, Depends(get_logo_by_id)],
+    db: Annotated[Session, Depends(get_db)],
+) -> FileResponse:
+    logger.debug(proj_logo)
+    logo = doc_schemas.Logo.model_validate(proj_logo)
+    return FileResponse(logo.url, filename=logo.name)
+
+
+@router.put(
+    "/{proj_id}/logo",
+    dependencies=[Depends(is_participant)],
+    status_code=status.HTTP_200_OK,
+)
+def update(
+    proj_id: UUID,
+    proj_logo: Annotated[doc_models.Logo, Depends(get_logo_by_id)],
+    file: Annotated[UploadFile, Depends(valid_file)],
+    db: Annotated[Session, Depends(get_db)],
+) -> doc_schemas.Logo:
+    logger.debug(logo_service.update(proj_logo, proj_id, file, db))
+    return logo_service.update(proj_logo, proj_id, file, db)
+
+
+@router.delete(
+    "/{proj_id}/logo",
+    dependencies=[Depends(is_participant)],
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete(
+    proj_id: UUID,
+    project: Annotated[models.Project, Depends(get_proj_by_id)],
+    proj_logo: Annotated[doc_models.Logo, Depends(get_logo_by_id)],
+    db: Annotated[Session, Depends(get_db)],
+) -> None:
+    logo_service.delete(proj_logo, project, db)
