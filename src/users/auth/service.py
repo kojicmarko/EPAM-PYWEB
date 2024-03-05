@@ -24,7 +24,7 @@ def login(
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         return None
-    token_expires = timedelta(minutes=float(settings.token_expire_time))
+    token_expires = timedelta(minutes=float(settings.TOKEN_EXPIRE_TIME))
     token = create_token(
         data={"username": user.username, "id": str(user.id)},
         expires_delta=token_expires,

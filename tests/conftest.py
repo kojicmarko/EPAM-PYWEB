@@ -21,7 +21,7 @@ from src.users.auth import service as auth_service
 from src.users.schemas import User, UserCreate
 from src.utils.auth import create_token
 
-engine = create_engine(settings.database_url)
+engine = create_engine(settings.DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base.metadata.create_all(bind=engine)

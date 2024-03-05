@@ -8,7 +8,7 @@ def valid_file(file: UploadFile) -> UploadFile:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid file"
         )
-    if file.content_type not in settings.valid_types:
+    if file.content_type not in settings.VALID_TYPES:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Unsupported file type",

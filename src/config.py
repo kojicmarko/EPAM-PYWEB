@@ -2,18 +2,20 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+TYPES = {
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+    "application/pdf": ".pdf",
+    "image/png": ".png",
+    "image/jpeg": ".jpg",
+}
+
 
 class Settings(BaseSettings):
-    database_url: str = ""
-    secret_key: str = ""
-    algorithm: str = ""
-    token_expire_time: float = 0
-    valid_types: dict[str, str] = {
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",  # noqa
-        "application/pdf": ".pdf",
-        "image/png": ".png",
-        "image/jpeg": ".jpg",
-    }
+    DATABASE_URL: str = ""
+    SECRET_KEY: str = ""
+    ALGORITHM: str = ""
+    TOKEN_EXPIRE_TIME: float = 0
+    VALID_TYPES: dict[str, str] = TYPES
 
     model_config = SettingsConfigDict(env_file=".env")
 
