@@ -9,7 +9,9 @@ from src.database import get_db
 from src.documents import models as doc_models
 from src.documents import schemas as doc_schemas
 from src.documents import service as doc_service
-from src.documents.dependencies import get_doc_by_id, valid_file
+from src.documents.dependencies import get_doc_by_id
+from src.files import service as file_service
+from src.files.dependencies import valid_file
 from src.projects import models as proj_models
 from src.projects.dependencies import get_proj_by_id
 from src.users import schemas as user_schemas
@@ -25,7 +27,7 @@ def upload_document(
     user: Annotated[user_schemas.User, Depends(is_participant)],
     db: Annotated[Session, Depends(get_db)],
 ) -> doc_schemas.Document:
-    url = doc_service.file_upload(document, proj_id)
+    url = file_service.upload(document, proj_id)
     return doc_service.create(document.filename, url, proj_id, user, db)
 
 
@@ -48,32 +50,34 @@ def read_documents(
 
 
 @router.get("/documents/{doc_id}", status_code=status.HTTP_200_OK)
-def download(
+def download_document(
     document: Annotated[doc_models.Document, Depends(get_doc_by_id)],
     user: Annotated[user_schemas.User, Depends(get_curr_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> FileResponse:
-    doc = doc_service.read(document, user.id, db)
+    is_participant(document.project_id, user, db)
+    doc = doc_service.read(document)
     return FileResponse(doc.url, filename=doc.name)
 
 
 @router.put("/documents/{doc_id}", status_code=status.HTTP_200_OK)
-def update(
-    doc_id: UUID,
+def update_document(
     document: Annotated[doc_models.Document, Depends(get_doc_by_id)],
     file: Annotated[UploadFile, Depends(valid_file)],
-    user: Annotated[user_schemas.User, Depends(get_curr_user)],
+    curr_user: Annotated[user_schemas.User, Depends(get_curr_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> doc_schemas.Document:
+    user = is_participant(document.project_id, curr_user, db)
     doc = doc_service.update(document, file, user.id, db)
     return doc
 
 
 @router.delete("/documents/{doc_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete(
+def delete_document(
     doc_id: UUID,
     document: Annotated[doc_models.Document, Depends(get_doc_by_id)],
-    user: Annotated[user_schemas.User, Depends(get_curr_user)],
+    curr_user: Annotated[user_schemas.User, Depends(get_curr_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> None:
-    doc_service.delete(document, user.id, db)
+    project = get_proj_by_id(document.project_id, db)
+    doc_service.delete(document, curr_user.id, project.owner_id, db)

@@ -12,6 +12,7 @@ from src.config import settings
 from src.database import get_db
 from src.documents import service as doc_service
 from src.documents.schemas import Document, DocumentCreate
+from src.files import service as file_service
 from src.main import app
 from src.models import Base
 from src.projects import service as project_service
@@ -94,7 +95,7 @@ def test_documents(
     return [
         doc_service.create(
             doc.name,
-            doc_service.file_upload(file, project.id),
+            file_service.upload(file, project.id),
             project.id,
             test_user,
             db,

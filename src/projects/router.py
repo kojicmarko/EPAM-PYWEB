@@ -78,7 +78,7 @@ def delete_project(
 
 
 @router.post("/{proj_id}/invite", status_code=status.HTTP_201_CREATED)
-def invite(
+def invite_to_project(
     proj_id: Annotated[UUID, Path(title="Project ID")],
     user: Annotated[str, Query(...)],
     owner: Annotated[user_schemas.User, Depends(get_curr_user)],

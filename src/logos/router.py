@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 from src.database import get_db
 from src.documents import models as doc_models
 from src.documents import schemas as doc_schemas
-from src.documents import service as doc_service
-from src.documents.dependencies import valid_file
+from src.files import service as file_service
+from src.files.dependencies import valid_file
 from src.logos import service as logo_service
 from src.logos.dependencies import get_logo_by_id
 from src.projects import models as proj_models
@@ -27,7 +27,7 @@ def upload(
     user: Annotated[user_schemas.User, Depends(is_participant)],
     db: Annotated[Session, Depends(get_db)],
 ) -> doc_schemas.Logo:
-    url = doc_service.file_upload(logo, project.id)
+    url = file_service.upload(logo, project.id)
     return logo_service.create(logo.filename, url, project, user, db)
 
 
