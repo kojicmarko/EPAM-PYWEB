@@ -52,10 +52,10 @@ def read_documents(
 @router.get("/documents/{doc_id}", status_code=status.HTTP_200_OK)
 def download_document(
     document: Annotated[doc_models.Document, Depends(get_doc_by_id)],
-    user: Annotated[user_schemas.User, Depends(get_curr_user)],
+    curr_user: Annotated[user_schemas.User, Depends(get_curr_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> FileResponse:
-    is_participant(document.project_id, user, db)
+    is_participant(document.project_id, curr_user, db)
     doc = doc_service.read(document)
     return FileResponse(doc.url, filename=doc.name)
 

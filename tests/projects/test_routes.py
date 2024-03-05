@@ -55,7 +55,7 @@ def test_read_nonexistent_project(
         headers={"Authorization": f"Bearer {test_token}"},
     )
 
-    assert res.status_code == 404
+    assert res.status_code == 403
 
 
 def test_unauthorized_project_access(
@@ -72,7 +72,7 @@ def test_unauthorized_project_access(
         headers={"Authorization": f"Bearer {unauthorized_token}"},
     )
 
-    assert res.status_code == 404
+    assert res.status_code == 403
 
 
 def test_create_project(
@@ -125,7 +125,7 @@ def test_update_nonexistent_project(
         headers={"Authorization": f"Bearer {test_token}"},
     )
 
-    assert res.status_code == 404
+    assert res.status_code == 403
 
 
 def test_delete_project(
@@ -172,7 +172,7 @@ def test_user_cannot_delete_project(
         headers={"Authorization": f"Bearer {participant_token}"},
     )
 
-    assert res.status_code == 404
+    assert res.status_code == 403
 
 
 def test_invite_to_project(

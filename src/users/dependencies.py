@@ -16,6 +16,19 @@ from src.users import schemas
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
+def get_user_by_username(
+    username: str, db: Annotated[Session, Depends(get_db)]
+) -> user_models.User:
+    user = (
+        db.query(user_models.User).filter(user_models.User.username == username).first()
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    return user
+
+
 def get_curr_user(
     db: Annotated[Session, Depends(get_db)],
     token: Annotated[str, Depends(oauth2_scheme)],

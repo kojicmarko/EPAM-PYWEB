@@ -1,17 +1,12 @@
 from uuid import UUID
 
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from src.models import ProjectUser
 from src.projects import models as proj_models
 from src.projects import schemas
-from src.users import models as user_models
-
-
-def get_by_id(proj_id: UUID, db: Session) -> proj_models.Project | None:
-    return (
-        db.query(proj_models.Project).filter(proj_models.Project.id == proj_id).first()
-    )
+from src.users.dependencies import get_user_by_username
 
 
 def read_all(user_id: UUID, db: Session) -> list[schemas.Project]:
@@ -24,87 +19,61 @@ def read_all(user_id: UUID, db: Session) -> list[schemas.Project]:
     return [schemas.Project.model_validate(proj) for proj in proj_list_orm]
 
 
-def read(proj_id: UUID, user_id: UUID, db: Session) -> schemas.Project | None:
-    proj_orm = get_by_id(proj_id, db)
-
-    if not proj_orm:
-        return None
-
-    project_user = (
-        db.query(ProjectUser).filter_by(user_id=user_id, project_id=proj_id).first()
-    )
-
-    if not project_user:
-        return None
-
-    return schemas.Project.model_validate(proj_orm)
+def read(project: proj_models.Project) -> schemas.Project:
+    return schemas.Project.model_validate(project)
 
 
 def create(
     proj_create: schemas.ProjectCreate, user_id: UUID, db: Session
 ) -> schemas.Project:
-    proj_orm = proj_models.Project(**proj_create.model_dump(), owner_id=user_id)
-    db.add(proj_orm)
+    project = proj_models.Project(**proj_create.model_dump(), owner_id=user_id)
+    db.add(project)
     db.commit()
 
-    m2m_relationship = ProjectUser(user_id=user_id, project_id=proj_orm.id)
+    m2m_relationship = ProjectUser(user_id=user_id, project_id=project.id)
     db.add(m2m_relationship)
     db.commit()
-    return schemas.Project.model_validate(proj_orm)
+    return schemas.Project.model_validate(project)
 
 
 def update(
-    proj_id: UUID, proj_update: schemas.ProjectUpdate, user_id: UUID, db: Session
-) -> schemas.Project | None:
-    proj_orm = get_by_id(proj_id, db)
-
-    if not proj_orm:
-        return None
-
-    project_user = (
-        db.query(ProjectUser).filter_by(user_id=user_id, project_id=proj_id).first()
-    )
-    if not project_user:
-        return None
-
-    if proj_update.name is not None and proj_update.name != proj_orm.name:
-        proj_orm.name = proj_update.name
+    project: proj_models.Project, proj_update: schemas.ProjectUpdate, db: Session
+) -> schemas.Project:
+    if proj_update.name is not None and proj_update.name != project.name:
+        project.name = proj_update.name
 
     if (
         proj_update.description is not None
-        and proj_update.description != proj_orm.description
+        and proj_update.description != project.description
     ):
-        proj_orm.description = proj_update.description
+        project.description = proj_update.description
 
     db.commit()
-    return schemas.Project.model_validate(proj_orm)
+    return schemas.Project.model_validate(project)
 
 
-def delete(proj_id: UUID, user_id: UUID, db: Session) -> bool:
-    proj_orm = get_by_id(proj_id, db)
+def delete(project: proj_models.Project, owner_id: UUID, db: Session) -> None:
+    if project.owner_id != owner_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only project owner can delete a project",
+        )
 
-    if not proj_orm or proj_orm.owner_id != user_id:
-        return False
-
-    db.delete(proj_orm)
+    db.delete(project)
     db.commit()
-    return True
 
 
-def invite(proj_id: UUID, username: str, owner_id: UUID, db: Session) -> bool:
-    proj_orm = get_by_id(proj_id, db)
+def invite(
+    project: proj_models.Project, username: str, owner_id: UUID, db: Session
+) -> None:
+    if project.owner_id != owner_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only project owner can invite to project",
+        )
 
-    if not proj_orm or proj_orm.owner_id != owner_id:
-        return False
+    user_to_invite = get_user_by_username(username, db)
 
-    user_to_invite = (
-        db.query(user_models.User).filter(user_models.User.username == username).first()
-    )
-    if not user_to_invite:
-        return False
-
-    m2m_relationship = ProjectUser(user_id=user_to_invite.id, project_id=proj_orm.id)
+    m2m_relationship = ProjectUser(user_id=user_to_invite.id, project_id=project.id)
     db.add(m2m_relationship)
     db.commit()
-
-    return True
