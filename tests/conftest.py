@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from src.config import settings
 from src.database import get_db
 from src.documents import service as doc_service
-from src.documents.schemas import Document, DocumentCreate
+from src.documents.schemas import Document
 from src.files import service as file_service
 from src.main import app
 from src.models import Base
@@ -91,16 +91,16 @@ def test_documents(
         UploadFile(file=BytesIO(b"file content"), filename=f"document{i}")
         for i in range(3)
     ]
-    documents = [DocumentCreate(name=file.filename) for file in files if file.filename]
+    documents = [file.filename for file in files if file.filename]
     return [
         doc_service.create(
-            doc.name,
+            doc_name,
             file_service.upload(file, project.id),
             project.id,
             test_user,
             db,
         )
-        for doc, file in zip(documents, files)
+        for doc_name, file in zip(documents, files)
     ]
 
 

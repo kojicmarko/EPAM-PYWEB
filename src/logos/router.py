@@ -6,9 +6,9 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from src.database import get_db
-from src.documents import models as doc_models
 from src.files import service as file_service
 from src.files.dependencies import valid_file
+from src.logos import models as logo_models
 from src.logos import schemas as logo_schemas
 from src.logos import service as logo_service
 from src.logos.dependencies import get_logo_by_id
@@ -38,7 +38,7 @@ def upload(
 )
 def download(
     proj_id: UUID,
-    proj_logo: Annotated[doc_models.Logo, Depends(get_logo_by_id)],
+    proj_logo: Annotated[logo_models.Logo, Depends(get_logo_by_id)],
     db: Annotated[Session, Depends(get_db)],
 ) -> FileResponse:
     logo = logo_schemas.Logo.model_validate(proj_logo)
@@ -52,7 +52,7 @@ def download(
 )
 def update(
     proj_id: UUID,
-    proj_logo: Annotated[doc_models.Logo, Depends(get_logo_by_id)],
+    proj_logo: Annotated[logo_models.Logo, Depends(get_logo_by_id)],
     file: Annotated[UploadFile, Depends(valid_file)],
     db: Annotated[Session, Depends(get_db)],
 ) -> logo_schemas.Logo:
@@ -60,14 +60,14 @@ def update(
 
 
 @router.delete(
-    "/{proj_id}/logo",
+    "/projects/{proj_id}/logo",
     dependencies=[Depends(is_participant)],
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete(
     proj_id: UUID,
     project: Annotated[proj_models.Project, Depends(get_proj_by_id)],
-    proj_logo: Annotated[doc_models.Logo, Depends(get_logo_by_id)],
+    proj_logo: Annotated[logo_models.Logo, Depends(get_logo_by_id)],
     db: Annotated[Session, Depends(get_db)],
 ) -> None:
     logo_service.delete(proj_logo, project, db)

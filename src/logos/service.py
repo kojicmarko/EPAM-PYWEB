@@ -3,8 +3,8 @@ from uuid import UUID
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
-from src.documents import models as doc_models
 from src.files import service as file_service
+from src.logos import models as logo_models
 from src.logos import schemas as logo_schemas
 from src.projects import models as proj_models
 from src.users import schemas as user_schemas
@@ -17,7 +17,7 @@ def create(
     user: user_schemas.User,
     db: Session,
 ) -> logo_schemas.Logo:
-    logo = doc_models.Logo(name=name, url=url, owner_id=user.id)
+    logo = logo_models.Logo(name=name, url=url, owner_id=user.id)
     db.add(logo)
     db.commit()
     project.logo_id = logo.id
@@ -26,7 +26,7 @@ def create(
 
 
 def update(
-    logo: doc_models.Logo, proj_id: UUID, file: UploadFile, db: Session
+    logo: logo_models.Logo, proj_id: UUID, file: UploadFile, db: Session
 ) -> logo_schemas.Logo:
     if file.filename is not None:
         logo.name = file.filename
@@ -43,7 +43,7 @@ def update(
 
 
 def delete(
-    logo: doc_models.Logo,
+    logo: logo_models.Logo,
     project: proj_models.Project,
     db: Session,
 ) -> None:

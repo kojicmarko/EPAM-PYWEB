@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from src.database import get_db
-from src.documents import models as logo_models
+from src.logos import models as logo_models
 from src.projects.dependencies import get_proj_by_id
 
 
