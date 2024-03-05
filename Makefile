@@ -3,7 +3,7 @@
 install:
 	poetry install
 build:
-	docker-compose build -t pyweb-image .
+	docker build -t pyweb-image .
 run:
 	poetry run uvicorn src.main:app --port 80
 stop:
