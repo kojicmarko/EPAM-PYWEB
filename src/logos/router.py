@@ -7,9 +7,9 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.documents import models as doc_models
-from src.documents import schemas as doc_schemas
 from src.files import service as file_service
 from src.files.dependencies import valid_file
+from src.logos import schemas as logo_schemas
 from src.logos import service as logo_service
 from src.logos.dependencies import get_logo_by_id
 from src.projects import models as proj_models
@@ -26,7 +26,7 @@ def upload(
     logo: Annotated[UploadFile, Depends(valid_file)],
     user: Annotated[user_schemas.User, Depends(is_participant)],
     db: Annotated[Session, Depends(get_db)],
-) -> doc_schemas.Logo:
+) -> logo_schemas.Logo:
     url = file_service.upload(logo, project.id)
     return logo_service.create(logo.filename, url, project, user, db)
 
@@ -41,7 +41,7 @@ def download(
     proj_logo: Annotated[doc_models.Logo, Depends(get_logo_by_id)],
     db: Annotated[Session, Depends(get_db)],
 ) -> FileResponse:
-    logo = doc_schemas.Logo.model_validate(proj_logo)
+    logo = logo_schemas.Logo.model_validate(proj_logo)
     return FileResponse(logo.url, filename=logo.name)
 
 
@@ -55,7 +55,7 @@ def update(
     proj_logo: Annotated[doc_models.Logo, Depends(get_logo_by_id)],
     file: Annotated[UploadFile, Depends(valid_file)],
     db: Annotated[Session, Depends(get_db)],
-) -> doc_schemas.Logo:
+) -> logo_schemas.Logo:
     return logo_service.update(proj_logo, proj_id, file, db)
 
 

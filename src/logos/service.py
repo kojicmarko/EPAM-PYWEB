@@ -4,8 +4,8 @@ from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
 from src.documents import models as doc_models
-from src.documents import schemas as doc_schemas
 from src.files import service as file_service
+from src.logos import schemas as logo_schemas
 from src.projects import models as proj_models
 from src.users import schemas as user_schemas
 
@@ -16,18 +16,18 @@ def create(
     project: proj_models.Project,
     user: user_schemas.User,
     db: Session,
-) -> doc_schemas.Logo:
+) -> logo_schemas.Logo:
     logo = doc_models.Logo(name=name, url=url, owner_id=user.id)
     db.add(logo)
     db.commit()
     project.logo_id = logo.id
     db.commit()
-    return doc_schemas.Logo.model_validate(logo)
+    return logo_schemas.Logo.model_validate(logo)
 
 
 def update(
     logo: doc_models.Logo, proj_id: UUID, file: UploadFile, db: Session
-) -> doc_schemas.Logo:
+) -> logo_schemas.Logo:
     if file.filename is not None:
         logo.name = file.filename
 
@@ -39,7 +39,7 @@ def update(
 
     file_service.delete(old_url)
 
-    return doc_schemas.Logo.model_validate(logo)
+    return logo_schemas.Logo.model_validate(logo)
 
 
 def delete(

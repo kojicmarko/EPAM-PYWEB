@@ -3,16 +3,14 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
-class DocumentBase(BaseModel):
-    name: str = Field(max_length=40)
+from src.files import schemas as file_schemas
 
 
-class DocumentCreate(DocumentBase):
+class DocumentCreate(file_schemas.FileBase):
     pass
 
 
-class Document(DocumentBase):
+class Document(file_schemas.FileBase):
     model_config = ConfigDict(from_attributes=True)
 
     url: str
@@ -30,11 +28,3 @@ class PaginatedDocuments(BaseModel):
     count: Optional[int]
     next: Optional[int]
     prev: Optional[int]
-
-
-class Logo(DocumentBase):
-    model_config = ConfigDict(from_attributes=True)
-
-    url: str
-    id: UUID
-    owner_id: UUID
