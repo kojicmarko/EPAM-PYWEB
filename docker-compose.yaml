@@ -17,6 +17,8 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - ALGORITHM=${ALGORITHM}
       - TOKEN_EXPIRE_TIME=${TOKEN_EXPIRE_TIME}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
   db:
     image: postgres:15-alpine
     container_name: db
