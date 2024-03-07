@@ -17,7 +17,7 @@ def test_read_projects(
     test_projects: list[Project],
     test_token: str,
 ) -> None:
-    res = client.get("/projects/", headers={"Authorization": f"Bearer {test_token}"})
+    res = client.get("/projects/", headers={"MyAuthorization": f"Bearer {test_token}"})
 
     assert res.status_code == 200
 
@@ -33,7 +33,7 @@ def test_read_project(
 
     res = client.get(
         f"/projects/{project.id}/info",
-        headers={"Authorization": f"Bearer {test_token}"},
+        headers={"MyAuthorization": f"Bearer {test_token}"},
     )
 
     assert res.json() == {
@@ -52,7 +52,7 @@ def test_read_nonexistent_project(
 ) -> None:
     res = client.get(
         "/projects/bc3f2dac-4915-4144-979e-569b8cc77534/info",
-        headers={"Authorization": f"Bearer {test_token}"},
+        headers={"MyAuthorization": f"Bearer {test_token}"},
     )
 
     assert res.status_code == 403
@@ -69,7 +69,7 @@ def test_unauthorized_project_access(
 
     res = client.get(
         f"/projects/{project.id}/info",
-        headers={"Authorization": f"Bearer {unauthorized_token}"},
+        headers={"MyAuthorization": f"Bearer {unauthorized_token}"},
     )
 
     assert res.status_code == 403
@@ -84,7 +84,7 @@ def test_create_project(
     data = {"name": "project9999"}
 
     res = client.post(
-        "/projects/", json=data, headers={"Authorization": f"Bearer {test_token}"}
+        "/projects/", json=data, headers={"MyAuthorization": f"Bearer {test_token}"}
     )
 
     assert res.json()["name"] == data["name"] and res.json()["owner_id"] == str(
@@ -105,7 +105,7 @@ def test_update_project(
     res = client.put(
         f"/projects/{project.id}/info",
         json=data,
-        headers={"Authorization": f"Bearer {test_token}"},
+        headers={"MyAuthorization": f"Bearer {test_token}"},
     )
 
     assert res.json()["name"] == data["name"]
@@ -122,7 +122,7 @@ def test_update_nonexistent_project(
     res = client.put(
         "/projects/bc3f2dac-4915-4144-979e-569b8cc77534/info",
         json=data,
-        headers={"Authorization": f"Bearer {test_token}"},
+        headers={"MyAuthorization": f"Bearer {test_token}"},
     )
 
     assert res.status_code == 403
@@ -138,7 +138,7 @@ def test_delete_project(
     project = test_projects[0]
 
     res = client.delete(
-        f"/projects/{project.id}", headers={"Authorization": f"Bearer {test_token}"}
+        f"/projects/{project.id}", headers={"MyAuthorization": f"Bearer {test_token}"}
     )
 
     assert res.status_code == 204
@@ -152,7 +152,7 @@ def test_delete_nonexistent_project(
 ) -> None:
     res = client.delete(
         "/projects/bc3f2dac-4915-4144-979e-569b8cc77534/",
-        headers={"Authorization": f"Bearer {test_token}"},
+        headers={"MyAuthorization": f"Bearer {test_token}"},
     )
 
     assert res.status_code == 404
@@ -169,7 +169,7 @@ def test_user_cannot_delete_project(
 
     res = client.delete(
         f"/projects/{project.id}",
-        headers={"Authorization": f"Bearer {participant_token}"},
+        headers={"MyAuthorization": f"Bearer {participant_token}"},
     )
 
     assert res.status_code == 403
@@ -187,7 +187,7 @@ def test_invite_to_project(
 
     res = client.post(
         f"/projects/{project.id}/invite?user={invited_user.username}",
-        headers={"Authorization": f"Bearer {test_token}"},
+        headers={"MyAuthorization": f"Bearer {test_token}"},
     )
 
     assert res.status_code == 201
@@ -205,7 +205,7 @@ def test_user_cannot_invite_to_project(
 
     res = client.post(
         f"/projects/{project.id}/invite?user={invited_user.username}",
-        headers={"Authorization": f"Bearer {participant_token}"},
+        headers={"MyAuthorization": f"Bearer {participant_token}"},
     )
 
     assert res.status_code == 403
@@ -225,7 +225,7 @@ def test_read_project_documents(
 
     res = client.get(
         f"/projects/{project.id}/documents?limit={limit}&offset={offset}",
-        headers={"Authorization": f"Bearer {test_token}"},
+        headers={"MyAuthorization": f"Bearer {test_token}"},
     )
 
     expected_documents = test_documents[offset : offset + limit]
@@ -248,7 +248,7 @@ def test_upload_document_to_project(
 
     res = client.post(
         f"/projects/{project.id}/documents",
-        headers={"Authorization": f"Bearer {test_token}"},
+        headers={"MyAuthorization": f"Bearer {test_token}"},
         files=data,
     )
 
@@ -276,7 +276,7 @@ def test_upload_unsupported_document_to_project(
 
     res = client.post(
         f"/projects/{project.id}/documents",
-        headers={"Authorization": f"Bearer {test_token}"},
+        headers={"MyAuthorization": f"Bearer {test_token}"},
         files=data,
     )
 

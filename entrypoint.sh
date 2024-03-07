@@ -12,9 +12,9 @@ echo "Migrations done"
 
 if [ "$RELOAD" = "true" ]
 then
-uvicorn src.main:app --host 0.0.0.0 --port 80 --reload
+uvicorn src.main:app --host 0.0.0.0 --reload
 else
-uvicorn src.main:app --host 0.0.0.0 --port 80
+uvicorn src.main:app --host 0.0.0.0
 fi
 
 exec "$@"

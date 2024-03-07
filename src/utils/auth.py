@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
+from typing import Optional
 
+from fastapi import HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from passlib.context import CryptContext
@@ -8,8 +10,34 @@ from sqlalchemy.orm import Session
 from src.config import settings
 from src.users import models, schemas
 
+
+def get_authorization_scheme_param(
+    authorization_header_value: Optional[str],
+) -> tuple[str, str]:
+    if not authorization_header_value:
+        return "", ""
+    scheme, _, param = authorization_header_value.partition(" ")
+    return scheme, param
+
+
+class MyOAuth2PasswordBearer(OAuth2PasswordBearer):
+    async def __call__(self, request: Request) -> Optional[str]:
+        authorization = request.headers.get("MyAuthorization")
+        scheme, param = get_authorization_scheme_param(authorization)
+        if not authorization or scheme.lower() != "bearer":
+            if self.auto_error:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Not authenticated",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            else:
+                return None
+        return param
+
+
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = MyOAuth2PasswordBearer(tokenUrl="login")
 
 
 def verify_password(password: str, password_hash: str) -> bool:

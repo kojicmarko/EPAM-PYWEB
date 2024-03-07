@@ -2,7 +2,6 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import exists
@@ -12,8 +11,10 @@ from src.database import get_db
 from src.models import ProjectUser
 from src.users import models as user_models
 from src.users import schemas
+from src.utils.auth import MyOAuth2PasswordBearer
+from src.utils.logger.main import logger
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = MyOAuth2PasswordBearer(tokenUrl="login")
 
 
 def get_user_by_username(
@@ -33,6 +34,8 @@ def get_curr_user(
     db: Annotated[Session, Depends(get_db)],
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> schemas.User:
+    logger.debug("HERE:")
+    logger.debug(f"{token}")
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid credentials",
@@ -50,6 +53,7 @@ def get_curr_user(
     user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
     if user is None:
         raise credentials_exception
+    logger.debug(f"{schemas.User.model_validate(user)}")
     return schemas.User.model_validate(user)
 
 

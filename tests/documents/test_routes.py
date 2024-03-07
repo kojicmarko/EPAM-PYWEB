@@ -22,7 +22,7 @@ def test_download_document(
 
     res = client.get(
         f"/documents/{document.id}/",
-        headers={"Authorization": f"Bearer {test_token}"},
+        headers={"MyAuthorization": f"Bearer {test_token}"},
     )
 
     assert res.status_code == 200
@@ -46,7 +46,7 @@ def test_update_document(
 
     res = client.put(
         f"/documents/{document.id}/",
-        headers={"Authorization": f"Bearer {test_token}"},
+        headers={"MyAuthorization": f"Bearer {test_token}"},
         files=data,
     )
 
@@ -69,7 +69,7 @@ def test_delete_document(
     document = test_documents[0]
 
     res = client.delete(
-        f"/documents/{document.id}", headers={"Authorization": f"Bearer {test_token}"}
+        f"/documents/{document.id}", headers={"MyAuthorization": f"Bearer {test_token}"}
     )
 
     assert res.status_code == status.HTTP_204_NO_CONTENT
