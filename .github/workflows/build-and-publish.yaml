@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build and publish the Docker image
         run: |
-          docker login --username kojicmarko --password ${{ secrets.GHCR_PAT }}
+          docker login --username kojicmarko --password-stdin ${{ secrets.GHCR_PAT }}
           docker build . -t ghcr.io/kojicmarko/final-pyweb-ghcr:latest
           docker push ghcr.io/kojicmarko/final-pyweb-ghcr:latest
           
