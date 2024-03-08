@@ -4,6 +4,10 @@ env:
   SECRET_KEY:  ${{ secrets.SECRET_KEY }}
   ALGORITHM: ${{ secrets.ALGORITHM }}
   TOKEN_EXPIRE_TIME: ${{ secrets.TOKEN_EXPIRE_TIME }}
+  DB_HOST: ${{ secrets.DB_HOST }}
+  DB_PORT: ${{ secrets.DB_PORT }}
+  AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
