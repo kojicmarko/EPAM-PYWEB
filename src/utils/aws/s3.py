@@ -13,7 +13,7 @@ def upload(file: UploadFile, proj_id: UUID, folder: str) -> str:
     client.upload_fileobj(
         file.file, settings.AWS_BUCKET_NAME, f"{folder}/{proj_id}_{file.filename}"
     )
-    url = f"https://{settings.AWS_BUCKET_NAME}.s3.{settings.AWS_REGION}.amazonaws.com/{folder}/{proj_id}_{file.filename}"
+    url = f"https://{settings.AWS_BUCKET_NAME}.s3.{settings.AWS_DEFAULT_REGION}.amazonaws.com/{folder}/{proj_id}_{file.filename}"
     return url
 
 
