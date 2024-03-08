@@ -1,19 +1,27 @@
 name: Build and Publish Docker image
+
 on:
+  push:
+    branches: main
   workflow_run:
     workflows: ["Lint and Test"]
     types:
       - completed
+
 jobs:
   build-and-publish:
-    if: ${{ github.ref == 'refs/heads/main' && github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
+      - name: Login to Docker
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: kojicmarko
+          password: ${{ secrets.GHCR_PAT }}
       - name: Build and publish the Docker image
         run: |
-          docker login --username kojicmarko --password-stdin ${{ secrets.GHCR_PAT }}
           docker build . -t ghcr.io/kojicmarko/final-pyweb-ghcr:latest
           docker push ghcr.io/kojicmarko/final-pyweb-ghcr:latest
-          
