@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from src.database import get_db
 from src.logos import models as logo_models
 from src.projects.dependencies import get_proj_by_id
+from src.utils.logger.main import logger
 
 
 def get_logo_by_id(
@@ -16,6 +17,7 @@ def get_logo_by_id(
     logo_id = project.logo_id
     logo = db.query(logo_models.Logo).filter(logo_models.Logo.id == logo_id).first()
     if not logo:
+        logger.error(logo)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Logo not found"
         )

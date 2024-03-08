@@ -40,7 +40,8 @@ def create_project(
     curr_user: Annotated[user_schemas.User, Depends(get_curr_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> proj_schemas.Project:
-    logger.debug(f"User {curr_user.username}, Created Project {project.model_dump()}")
+    log_msg = "User: %s created Project: %s"
+    logger.warning(log_msg, curr_user.username, project.model_dump())
     return proj_service.create(project, curr_user.id, db)
 
 
@@ -54,6 +55,8 @@ def update_project(
     project: Annotated[proj_models.Project, Depends(get_proj_by_id)],
     db: Annotated[Session, Depends(get_db)],
 ) -> proj_schemas.Project:
+    log_msg = "Updated Project: %s to Project: %s"
+    logger.warning(log_msg, project.name, proj_update)
     return proj_service.update(project, proj_update, db)
 
 
@@ -73,4 +76,6 @@ def invite_to_project(
     owner: Annotated[user_schemas.User, Depends(is_participant)],
     db: Annotated[Session, Depends(get_db)],
 ) -> None:
+    log_msg = "User: %s, invited User: %s to Project: %s"
+    logger.warning(log_msg, owner.username, user, project.name)
     return proj_service.invite(project, user, owner.id, db)

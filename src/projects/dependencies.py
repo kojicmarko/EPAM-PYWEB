@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.projects import models
+from src.utils.logger.main import logger
 
 
 def get_proj_by_id(
@@ -13,6 +14,7 @@ def get_proj_by_id(
 ) -> models.Project:
     project = db.query(models.Project).filter(models.Project.id == proj_id).first()
     if not project:
+        logger.error(project)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
         )

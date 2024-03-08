@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from fastapi import HTTPException, UploadFile, status
@@ -6,8 +7,10 @@ from sqlalchemy.orm import Session
 
 from src.documents import models as doc_models
 from src.documents import schemas as doc_schemas
-from src.files import service as file_service
+from src.projects import schemas as proj_schemas
 from src.users import schemas as user_schemas
+from src.utils.aws import s3
+from src.utils.logger.main import logger
 
 
 def read_all(
@@ -29,46 +32,56 @@ def read_all(
     )
 
 
-def read(document: doc_models.Document) -> doc_schemas.Document:
-    return doc_schemas.Document.model_validate(document)
+def read(document: doc_models.Document) -> Any:
+    doc = doc_schemas.Document.model_validate(document)
+    res = s3.download(f"{doc.project_id}_{doc.name}", "documents")
+    return res
 
 
 def create(
-    name: str | None, url: str, proj_id: UUID, user: user_schemas.User, db: Session
+    doc_file: UploadFile,
+    project: proj_schemas.Project,
+    user: user_schemas.User,
+    db: Session,
 ) -> doc_schemas.Document:
+    url = s3.upload(doc_file, project.id, "documents")
+
     document = doc_models.Document(
-        name=name, url=url, owner_id=user.id, project_id=proj_id
+        name=str(doc_file.filename), url=url, owner_id=user.id, project_id=project.id
     )
+
     db.add(document)
     db.commit()
+
     return doc_schemas.Document.model_validate(document)
 
 
 def update(
-    document: doc_models.Document, file: UploadFile, user_id: UUID, db: Session
+    document: doc_models.Document, file: UploadFile, db: Session
 ) -> doc_schemas.Document:
-    old_url = document.url
-    new_url = file_service.upload(file, document.project_id)
+    s3.delete(f"{document.project_id}_{document.name}", "documents")
 
-    document.url = new_url
+    document.name = str(file.filename)
+    document.url = s3.upload(file, document.project_id, "documents")
     db.commit()
-
-    file_service.delete(old_url)
 
     return doc_schemas.Document.model_validate(document)
 
 
 def delete(
     document: doc_models.Document,
-    user_id: UUID,
+    curr_user_id: UUID,
     owner_id: UUID,
     db: Session,
 ) -> None:
-    if owner_id != user_id:
+    if owner_id != curr_user_id:
+        log_msg = "Current User: %s - IS NOT OWNER - Owner: %s"
+        logger.error(log_msg, curr_user_id, owner_id)
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden access"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Project owner can delete Documents",
         )
 
-    file_service.delete(document.url)
+    s3.delete(f"{document.project_id}_{document.name}", "documents")
     db.delete(document)
     db.commit()

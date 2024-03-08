@@ -24,6 +24,7 @@ def get_user_by_username(
         db.query(user_models.User).filter(user_models.User.username == username).first()
     )
     if not user:
+        logger.error(user)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
@@ -34,8 +35,6 @@ def get_curr_user(
     db: Annotated[Session, Depends(get_db)],
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> schemas.User:
-    logger.debug("HERE:")
-    logger.debug(f"{token}")
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid credentials",
@@ -47,13 +46,15 @@ def get_curr_user(
         )
         user_id = payload.get("id")
         if user_id is None:
+            logger.error(payload)
             raise credentials_exception
     except JWTError as err:
+        logger.error(JWTError)
         raise credentials_exception from err
     user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
     if user is None:
+        logger.error(user)
         raise credentials_exception
-    logger.debug(f"{schemas.User.model_validate(user)}")
     return schemas.User.model_validate(user)
 
 
@@ -69,6 +70,7 @@ def is_participant(
     ).scalar()
 
     if not project_user:
+        logger.error(project_user)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden access"
         )

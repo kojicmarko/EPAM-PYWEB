@@ -5,19 +5,10 @@ from uuid import UUID
 from fastapi import UploadFile
 
 
-def upload(file: UploadFile, proj_id: UUID) -> str:
+def upload(file: UploadFile, proj_id: UUID, folder: str) -> str:
     filename = f"{proj_id}_{file.filename}"
-    if file.content_type == "image/png" or file.content_type == "image/jpeg":
-        path = (
-            pathlib.Path(__file__).parent.parent.parent / "bucket" / "logos" / filename
-        )
-    else:
-        path = (
-            pathlib.Path(__file__).parent.parent.parent
-            / "bucket"
-            / "documents"
-            / filename
-        )
+
+    path = pathlib.Path(__file__).parent.parent.parent / "bucket" / folder / filename
 
     with open(path, "wb+") as f:
         f.write(file.file.read())
@@ -25,5 +16,5 @@ def upload(file: UploadFile, proj_id: UUID) -> str:
     return str(path)
 
 
-def delete(url: str) -> None:
-    os.remove(url)
+def delete(path: str) -> None:
+    os.remove(path)

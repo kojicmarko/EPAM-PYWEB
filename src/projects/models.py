@@ -16,6 +16,6 @@ class Project(Base):
     )
     owner_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=True)
     owner = relationship("User")
-    logo_id: Mapped[UUID] = mapped_column(ForeignKey("logos.id"), nullable=True)
+    logo_id: Mapped[UUID | None] = mapped_column(ForeignKey("logos.id"), nullable=True)
     logo = relationship("Logo")
     documents = relationship("Document", backref="projects")

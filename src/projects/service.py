@@ -3,10 +3,14 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from src.documents import service as doc_service
+from src.logos import service as logo_service
+from src.logos.dependencies import get_logo_by_id
 from src.models import ProjectUser
 from src.projects import models as proj_models
 from src.projects import schemas
 from src.users.dependencies import get_user_by_username
+from src.utils.logger.main import logger
 
 
 def read_all(user_id: UUID, db: Session) -> list[schemas.Project]:
@@ -54,10 +58,21 @@ def update(
 
 def delete(project: proj_models.Project, owner_id: UUID, db: Session) -> None:
     if project.owner_id != owner_id:
+        log_msg = "Current User: %s - IS NOT OWNER - Owner: %s"
+        logger.error(log_msg, owner_id, project.owner_id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only project owner can delete a project",
         )
+
+    if project.documents:
+        for document in project.documents:
+            doc_service.delete(document, owner_id, project.owner_id, db)
+
+    if project.logo_id is not None:
+        logo = get_logo_by_id(project.id, db)
+        project.logo_id = None
+        logo_service.delete(logo, owner_id, project, db)
 
     db.delete(project)
     db.commit()
@@ -67,6 +82,8 @@ def invite(
     project: proj_models.Project, username: str, owner_id: UUID, db: Session
 ) -> None:
     if project.owner_id != owner_id:
+        log_msg = "Current User: %s - IS NOT OWNER - Owner: %s"
+        logger.error(log_msg, owner_id, project.owner_id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only project owner can invite to project",

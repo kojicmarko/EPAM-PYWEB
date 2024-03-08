@@ -1,8 +1,7 @@
 from typing import Annotated
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from src.database import get_db
@@ -10,25 +9,28 @@ from src.documents import models as doc_models
 from src.documents import schemas as doc_schemas
 from src.documents import service as doc_service
 from src.documents.dependencies import get_doc_by_id
-from src.files import service as file_service
 from src.files.dependencies import valid_file
 from src.projects import models as proj_models
+from src.projects import schemas as proj_schemas
 from src.projects.dependencies import get_proj_by_id
 from src.users import schemas as user_schemas
 from src.users.dependencies import get_curr_user, is_participant
+from src.utils.logger.main import logger
 
 router = APIRouter()
 
 
 @router.post("/projects/{proj_id}/documents", status_code=status.HTTP_201_CREATED)
 def upload_document(
-    proj_id: UUID,
+    proj_model: Annotated[proj_models.Project, Depends(get_proj_by_id)],
     document: Annotated[UploadFile, Depends(valid_file)],
     user: Annotated[user_schemas.User, Depends(is_participant)],
     db: Annotated[Session, Depends(get_db)],
 ) -> doc_schemas.Document:
-    url = file_service.upload(document, proj_id)
-    return doc_service.create(document.filename, url, proj_id, user, db)
+    log_msg = "User: %s, Uploaded: %s to Project: %s"
+    logger.warning(log_msg, user.username, document, proj_model.name)
+    project = proj_schemas.Project.model_validate(proj_model)
+    return doc_service.create(document, project, user, db)
 
 
 @router.get(
@@ -54,10 +56,10 @@ def download_document(
     document: Annotated[doc_models.Document, Depends(get_doc_by_id)],
     curr_user: Annotated[user_schemas.User, Depends(get_curr_user)],
     db: Annotated[Session, Depends(get_db)],
-) -> FileResponse:
+) -> StreamingResponse:
     is_participant(document.project_id, curr_user, db)
-    doc = doc_service.read(document)
-    return FileResponse(doc.url, filename=doc.name)
+    res = doc_service.read(document)
+    return StreamingResponse(res["Body"])
 
 
 @router.put("/documents/{doc_id}", status_code=status.HTTP_200_OK)
@@ -67,14 +69,14 @@ def update_document(
     curr_user: Annotated[user_schemas.User, Depends(get_curr_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> doc_schemas.Document:
-    user = is_participant(document.project_id, curr_user, db)
-    doc = doc_service.update(document, file, user.id, db)
-    return doc
+    is_participant(document.project_id, curr_user, db)
+    log_msg = "Updated Document: %s to Document: %s"
+    logger.warning(log_msg, document, file)
+    return doc_service.update(document, file, db)
 
 
 @router.delete("/documents/{doc_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_document(
-    doc_id: UUID,
     document: Annotated[doc_models.Document, Depends(get_doc_by_id)],
     curr_user: Annotated[user_schemas.User, Depends(get_curr_user)],
     db: Annotated[Session, Depends(get_db)],

@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     VALID_TYPES: dict[str, str] = TYPES
     DB_HOST: str = ""
     DB_PORT: int = 0
+    AWS_BUCKET_NAME: str = ""
+    AWS_REGION: str = ""
 
     model_config = SettingsConfigDict(env_file=".env")
 

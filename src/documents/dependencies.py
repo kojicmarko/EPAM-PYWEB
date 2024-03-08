@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.documents import models as doc_models
+from src.utils.logger.main import logger
 
 
 def get_doc_by_id(
@@ -15,6 +16,7 @@ def get_doc_by_id(
         db.query(doc_models.Document).filter(doc_models.Document.id == doc_id).first()
     )
     if not document:
+        logger.error(document)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
         )

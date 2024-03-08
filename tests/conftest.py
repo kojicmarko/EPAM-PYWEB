@@ -12,7 +12,6 @@ from src.config import settings
 from src.database import get_db
 from src.documents import service as doc_service
 from src.documents.schemas import Document
-from src.files import service as file_service
 from src.main import app
 from src.models import Base
 from src.projects import service as project_service
@@ -20,6 +19,7 @@ from src.projects.schemas import Project, ProjectCreate
 from src.users.auth import service as auth_service
 from src.users.schemas import User, UserCreate
 from src.utils.auth import create_token
+from src.utils.aws import s3
 
 engine = create_engine(settings.DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -85,23 +85,24 @@ def mock_upload_file() -> UploadFile:
 @pytest.fixture(scope="function")
 def test_documents(
     db: Session, test_user: User, test_projects: list[Project]
-) -> list[Document]:
+) -> Generator[list[Document], None, None]:
     project = test_projects[0]
     files = [
         UploadFile(file=BytesIO(b"file content"), filename=f"document{i}")
         for i in range(3)
     ]
     documents = [file.filename for file in files if file.filename]
-    return [
+    yield [
         doc_service.create(
-            doc_name,
-            file_service.upload(file, project.id),
-            project.id,
+            file,
+            project,
             test_user,
             db,
         )
-        for doc_name, file in zip(documents, files)
+        for file in files
     ]
+    for doc_name in documents:
+        s3.delete(f"{project.id}_{doc_name}", "documents")
 
 
 # USERS:
