@@ -1,4 +1,3 @@
-from typing import Any
 from uuid import UUID
 
 from fastapi import HTTPException, UploadFile, status
@@ -14,10 +13,11 @@ from src.utils.logger.main import logger
 s3 = S3Client()
 
 
-def read(logo: logo_models.Logo, proj_id: UUID) -> Any:
+def read(logo: logo_models.Logo, proj_id: UUID) -> logo_schemas.Logo:
     logo_schema = logo_schemas.Logo.model_validate(logo)
-    res = s3.download(f"{proj_id}_{logo_schema.name}", "logos")
-    return res
+    # Due to API Gateway problems we're only returning URL to the Logo
+    # res = s3.download(f"{proj_id}_{logo_schema.name}", "logos")
+    return logo_schema
 
 
 def create(

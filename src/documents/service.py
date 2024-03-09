@@ -1,4 +1,3 @@
-from typing import Any
 from uuid import UUID
 
 from fastapi import HTTPException, UploadFile, status
@@ -34,10 +33,11 @@ def read_all(
     )
 
 
-def read(document: doc_models.Document) -> Any:
+def read(document: doc_models.Document) -> doc_schemas.Document:
     doc = doc_schemas.Document.model_validate(document)
-    res = s3.download(f"{doc.project_id}_{doc.name}", "documents")
-    return res
+    # Due to API Gateway problems we're only returning URL to the Document
+    # res = s3.download(f"{doc.project_id}_{doc.name}", "documents")
+    return doc
 
 
 def create(
