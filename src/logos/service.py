@@ -66,7 +66,5 @@ def delete(
         )
 
     s3.delete(f"{project.id}_{logo.name}", "logos")
-    project.logo_id = None
-    db.commit()
     db.delete(logo)
     db.commit()

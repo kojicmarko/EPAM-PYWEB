@@ -3,8 +3,13 @@ on:
   pull_request:
     types: [closed]
     branches: [main]
+  workflow_run:
+    workflows: ["Build and Publish Docker image"]
+    types:
+      - completed
 jobs:
   deploy-to-ecs:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out Git repository
