@@ -1,6 +1,7 @@
 name: "Build and Publish Docker image"
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches: [main]
   workflow_run:
     workflows: ["Lint and Test"]
