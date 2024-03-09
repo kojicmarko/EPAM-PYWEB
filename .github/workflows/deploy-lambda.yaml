@@ -1,17 +1,12 @@
-name: Deploy AWS Lambda
-
+name: "Deploy AWS Lambda"
 on:
   pull_request:
     types: [closed]
     branches: [main]
-
-
-
 jobs:
   deploy-lambda:
     if: ${{ github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
