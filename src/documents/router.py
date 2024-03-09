@@ -1,7 +1,6 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, UploadFile, status
-from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from src.database import get_db
@@ -56,10 +55,9 @@ def download_document(
     document: Annotated[doc_models.Document, Depends(get_doc_by_id)],
     curr_user: Annotated[user_schemas.User, Depends(get_curr_user)],
     db: Annotated[Session, Depends(get_db)],
-) -> StreamingResponse:
+) -> doc_schemas.Document:
     is_participant(document.project_id, curr_user, db)
-    res = doc_service.read(document)
-    return StreamingResponse(res["Body"])
+    return doc_service.read(document)
 
 
 @router.put("/documents/{doc_id}", status_code=status.HTTP_200_OK)

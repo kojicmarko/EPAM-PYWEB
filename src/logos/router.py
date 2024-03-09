@@ -2,7 +2,6 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, UploadFile, status
-from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from src.database import get_db
@@ -40,9 +39,8 @@ def upload_logo(
 def download_logo(
     proj_id: UUID,
     proj_logo: Annotated[logo_models.Logo, Depends(get_logo_by_id)],
-) -> StreamingResponse:
-    res = logo_service.read(proj_logo, proj_id)
-    return StreamingResponse(res["Body"])
+) -> logo_schemas.Logo:
+    return logo_service.read(proj_logo, proj_id)
 
 
 @router.put(
