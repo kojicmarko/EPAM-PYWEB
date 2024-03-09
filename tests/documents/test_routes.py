@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 from src.documents import schemas as doc_schemas
 from src.projects.schemas import Project
 from src.users.schemas import User
-from src.utils.aws import s3
+from src.utils.aws.s3 import S3Client
+
+s3 = S3Client()
 
 
 def test_read_project_documents(

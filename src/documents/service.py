@@ -9,8 +9,10 @@ from src.documents import models as doc_models
 from src.documents import schemas as doc_schemas
 from src.projects import schemas as proj_schemas
 from src.users import schemas as user_schemas
-from src.utils.aws import s3
+from src.utils.aws.s3 import S3Client
 from src.utils.logger.main import logger
+
+s3 = S3Client()
 
 
 def read_all(

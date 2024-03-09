@@ -8,8 +8,10 @@ from src.logos import models as logo_models
 from src.logos import schemas as logo_schemas
 from src.projects import models as proj_models
 from src.users import schemas as user_schemas
-from src.utils.aws import s3
+from src.utils.aws.s3 import S3Client
 from src.utils.logger.main import logger
+
+s3 = S3Client()
 
 
 def read(logo: logo_models.Logo, proj_id: UUID) -> Any:
