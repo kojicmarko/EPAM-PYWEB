@@ -4,13 +4,15 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from src.documents import service as doc_service
-from src.logos import service as logo_service
 from src.logos.dependencies import get_logo_by_id
 from src.models import ProjectUser
 from src.projects import models as proj_models
 from src.projects import schemas
 from src.users.dependencies import get_user_by_username
+from src.utils.aws.s3 import S3Client
 from src.utils.logger.main import logger
+
+s3 = S3Client()
 
 
 def read_all(user_id: UUID, db: Session) -> list[schemas.Project]:
@@ -69,10 +71,9 @@ def delete(project: proj_models.Project, owner_id: UUID, db: Session) -> None:
         for document in project.documents:
             doc_service.delete(document, owner_id, project.owner_id, db)
 
-    if project.logo_id is not None:
+    if project.logo_id:
         logo = get_logo_by_id(project.id, db)
-        project.logo_id = None
-        logo_service.delete(logo, owner_id, project, db)
+        s3.delete(f"{project.id}_{logo.name}", "logos")
 
     db.delete(project)
     db.commit()
