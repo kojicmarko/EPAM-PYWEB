@@ -19,5 +19,4 @@ class Project(Base):
     logo_id: Mapped[UUID] = mapped_column(
         ForeignKey("logos.id", ondelete="SET NULL"), nullable=True
     )
-    logo = relationship("Logo", cascade="all,delete")
     documents = relationship("Document", backref="projects")
