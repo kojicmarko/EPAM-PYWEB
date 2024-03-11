@@ -73,7 +73,7 @@ def delete(project: proj_models.Project, owner_id: UUID, db: Session) -> None:
 
     if project.logo_id:
         logo = get_logo_by_id(project.id, db)
-        s3.delete(f"{project.id}_{logo.name}", "logos")
+        s3.delete(f"{project.id}_{logo.name}", "resized_logos")
 
     db.delete(project)
     db.commit()

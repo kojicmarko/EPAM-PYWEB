@@ -26,7 +26,8 @@ def create(
     user: user_schemas.User,
     db: Session,
 ) -> logo_schemas.Logo:
-    url = s3.upload(logo_file, project.id, "logos")
+    unprocessed_url = s3.upload(logo_file, project.id, "logos")
+    url = unprocessed_url.replace("logos", "resized_logos")
 
     logo = logo_models.Logo(name=str(logo_file.filename), url=url, owner_id=user.id)
 
@@ -42,7 +43,7 @@ def create(
 def update(
     logo: logo_models.Logo, proj_id: UUID, file: UploadFile, db: Session
 ) -> logo_schemas.Logo:
-    s3.delete(f"{proj_id}_{logo.name}", "logos")
+    s3.delete(f"{proj_id}_{logo.name}", "resized_logos")
 
     logo.name = str(file.filename)
     logo.url = s3.upload(file, proj_id, "logos")
@@ -65,6 +66,6 @@ def delete(
             detail="Only Project owner can delete the Logo",
         )
 
-    s3.delete(f"{project.id}_{logo.name}", "logos")
+    s3.delete(f"{project.id}_{logo.name}", "resized_logos")
     db.delete(logo)
     db.commit()
