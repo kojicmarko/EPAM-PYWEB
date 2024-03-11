@@ -7,6 +7,9 @@
 # Install the dependencies
 install:
 	@poetry install
+# Run Alembic migrations
+migrations:
+	@poetry run alembic upgrade head
 # Build docker image
 build:
 	@docker build -t final-pyweb-image .
