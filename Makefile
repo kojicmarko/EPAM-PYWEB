@@ -7,7 +7,7 @@
 # Install the dependencies
 install:
 	@poetry install
-# Run Alembic migrations
+# Apply Alembic migrations to database
 migrations:
 	@poetry run alembic upgrade head
 # Build docker image
